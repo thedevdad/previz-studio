@@ -75,6 +75,7 @@ textarea{height:240px;font:12px ui-monospace,monospace;margin-bottom:10px}
 <h3>Vista</h3><div class="tools"><button data-view="shot" class="on">🎥 Cámara del plano</button><button data-view="free">🧭 Vista libre</button></div>
 <h3>Editar puntos</h3><div class="tools"><button data-h3="xz" class="on">↔ Mover por el suelo</button><button data-h3="y">↕ Cambiar altura</button></div>
 <p class="hint" id="h3i">En 🧭 Vista libre, arrastra los puntos naranja (cámara), cian (objetivo) y verdes (recorridos).</p>
+<h3>Vídeo de referencia</h3><div id="refBox"></div><input type="file" id="refFile" accept="video/*" hidden>
 <h3>Formato</h3><select id="aspSel"><option value="2.39">Cinemascope 2,39:1</option><option value="1.85">Cine 1,85:1</option><option value="1.778">16:9</option><option value="1.333">4:3</option></select>
 <h3>Hora del día</h3><select id="todSel"><option value="dia">☀️ Día</option><option value="atardecer">🌇 Atardecer</option><option value="noche">🌙 Noche</option></select>
 <label style="margin-top:6px">Dirección de la luz: <b id="sunTx"></b><input type="range" id="sunAz" min="0" max="359" step="5" style="width:100%"></label>
@@ -83,7 +84,7 @@ textarea{height:240px;font:12px ui-monospace,monospace;margin-bottom:10px}
 <p class="hint cm">Con ＋ haz clic en la planta para añadir puntos: un solo punto es un plano fijo; varios, un movimiento de cámara. Si haces clic sobre la línea entre dos puntos, el nuevo punto se inserta ahí. Arrastra el círculo para mover la cámara (con Alt, el objetivo se queda fijo) y la cruz para cambiar hacia dónde mira. Supr borra el punto elegido. Con 🚶, pulsa un personaje o un perro y luego traza por dónde se mueve en este plano.</p>
 <p class="hint pl">Pulsa un objeto para añadirlo al centro de la vista y arrástralo. Rueda: zoom · arrastra el fondo: mover la vista · Supr: borrar · Ctrl+Z: deshacer · Flechas: empujar · Mayús al dibujar muros: línea recta.</p>
 </aside>
-<div id="stage"><canvas id="cv" tabindex="0" style="outline:none"></canvas><div id="stat">—</div><div id="v3w"><canvas id="gl"></canvas><div id="hud"></div></div><div id="tl"><button id="tPlay">▶</button><input type="range" id="tSc" min="0" max="1000" value="0"><span id="tTm" style="min-width:96px;text-align:center;font-variant-numeric:tabular-nums">0,0 / 0,0 s</span><select id="spdSel"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option></select><label class="chk" style="margin:0"><input type="checkbox" id="tLoop" checked> Bucle</label><label class="chk" style="margin:0"><input type="checkbox" id="tEase" checked> Suave</label></div><div id="toast"></div></div>
+<div id="stage"><canvas id="cv" tabindex="0" style="outline:none"></canvas><div id="stat">—</div><div id="v3w"><canvas id="gl"></canvas><video id="refV" muted playsinline preload="auto" style="position:absolute;pointer-events:none;display:none;object-fit:contain"></video><div id="hud"></div></div><div id="tl"><button id="tPlay">▶</button><input type="range" id="tSc" min="0" max="1000" value="0"><span id="tTm" style="min-width:96px;text-align:center;font-variant-numeric:tabular-nums">0,0 / 0,0 s</span><select id="spdSel"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option></select><label class="chk" style="margin:0"><input type="checkbox" id="tLoop" checked> Bucle</label><label class="chk" style="margin:0"><input type="checkbox" id="tEase" checked> Suave</label></div><div id="toast"></div></div>
 <aside id="R"><h3>Propiedades</h3><div id="insp"></div></aside>
 </main>
 <div id="io" hidden><div class="card"><h3>Proyecto como texto (avanzado)</h3>
@@ -656,7 +657,7 @@ function setStyle(i){style=i;document.querySelectorAll('[data-style]').forEach(b
 function bez(P,i,u){const a=P[i-1]||P[i],b=P[i],c=P[i+1]||P[i],d=P[i+2]||c,m=1-u;
 const c1=b.clone().add(c.clone().sub(a).divideScalar(6)),c2=c.clone().sub(d.clone().sub(b).divideScalar(6));
 return new THREE.Vector3().addScaledVector(b,m*m*m).addScaledVector(c1,3*m*m*u).addScaledVector(c2,3*m*u*u).addScaledVector(c,u*u*u)}
-const total=()=>{const s=cur();if(!s)return 0;let t=s.pts.reduce((a,p)=>a+p.d,0);(s.mv||[]).forEach(m=>{const o=S.items.find(i=>i.id===m.id);if(o&&m.pts.length)t=Math.max(t,(m.dl||0)+routeLen(o,m)/m.spd)});return t};
+const total=()=>{const s=cur();if(!s)return 0;let t=s.pts.reduce((a,p)=>a+p.d,0);if(s.ref&&s.ref.dur)t=Math.max(t,s.ref.dur-(s.ref.off||0));(s.mv||[]).forEach(m=>{const o=S.items.find(i=>i.id===m.id);if(o&&m.pts.length)t=Math.max(t,(m.dl||0)+routeLen(o,m)/m.spd)});return t};
 function evalCam(s,t){const n=s.pts.length;if(!n)return null;const P=s.pts.map(p=>new THREE.Vector3(p.x,p.h,p.y)),Q=s.pts.map(p=>new THREE.Vector3(p.tx,p.th,p.ty));
 let a=0;const T=s.pts.map(p=>a+=p.d);if(n===1||t<=T[0])return{pos:P[0],tar:Q[0]};
 let i=1;while(i<n-1&&t>T[i])i++;let u=s.pts[i].d>0?(t-T[i-1])/s.pts[i].d:1;u=Math.max(0,Math.min(1,u));if($('#tEase').checked)u=u*u*(3-2*u);
@@ -672,7 +673,7 @@ P.forEach((p,i)=>{seg.push(p,Q[i]);hd(p,0xff5a1f,.09,{k:'cp',i});hd(Q[i],0x22b8c
 g.helpers.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(seg),new THREE.LineBasicMaterial({color:0x22b8cf})));
 g.helpers.add(new THREE.LineSegments(new THREE.BufferGeometry().setFromPoints(drop),new THREE.LineBasicMaterial({color:0x9aa0a6,transparent:true,opacity:.7})))}
 function prep3D(){const g=G;if(!g)return;sel3=null;helpers3D();resetActors();info3()}
-function v3Insp(){const s=cur();$('#insp').innerHTML=s?'<h3>'+esc(s.n)+'</h3><p class=hint>'+(s.pts.length?(s.pts.length===1?'Plano fijo':'Movimiento de cámara con '+s.pts.length+' puntos')+' · lente '+s.lens+' mm · '+total().toFixed(1)+' s':'Este plano no tiene puntos de cámara. Añádelos en el modo Cámara.')+'</p><p class=hint>En 🧭 Vista libre puedes arrastrar los puntos de cámara y de recorrido. Para añadir o borrar puntos, usa el modo Cámara; para cambiar el set, el modo Planta.</p>':'<p class=hint>Crea un plano en el modo Cámara.</p>'}
+function v3Insp(){refUI();const s=cur();$('#insp').innerHTML=s?'<h3>'+esc(s.n)+'</h3><p class=hint>'+(s.pts.length?(s.pts.length===1?'Plano fijo':'Movimiento de cámara con '+s.pts.length+' puntos')+' · lente '+s.lens+' mm · '+total().toFixed(1)+' s':'Este plano no tiene puntos de cámara. Añádelos en el modo Cámara.')+'</p><p class=hint>En 🧭 Vista libre puedes arrastrar los puntos de cámara y de recorrido. Para añadir o borrar puntos, usa el modo Cámara; para cambiar el set, el modo Planta.</p>':'<p class=hint>Crea un plano en el modo Cámara.</p>'}
 const isFree=()=>view==='free'||!(cur()&&cur().pts.length),updPlay=()=>{$('#tPlay').textContent=playing?'⏸':'▶'};
 const tc=t=>{const p=n=>String(n).padStart(2,'0');return p(Math.floor(t/60))+':'+p(Math.floor(t%60))+':'+p(Math.floor((t%1)*24))};
 function layoutGL(free){const w=$('#v3w'),W=w.clientWidth,H=w.clientHeight;if(!W||!H)return;let cw=W,ch=H;if(!free){cw=Math.min(W,Math.floor(H*asp));ch=Math.floor(cw/asp)}
@@ -686,7 +687,7 @@ function frame(){const g=G,s=cur(),tot=total(),has=!!(s&&s.pts.length),free=isFr
 animActors(tm);const ar=g.cw/g.ch;let cam=g.sc;
 if(has){const ev=evalCam(s,tm);g.sc.position.copy(ev.pos);g.sc.lookAt(ev.tar);g.sc.fov=2*Math.atan(Math.tan(lensFov(s.lens)/2)/ar)*180/Math.PI;g.sc.aspect=ar;g.sc.updateProjectionMatrix()}
 if(free){const o=g.orb;g.fc.aspect=ar;g.fc.updateProjectionMatrix();g.fc.position.set(o.tx+o.dist*Math.cos(o.pit)*Math.sin(o.yaw),o.dist*Math.sin(o.pit),o.tz+o.dist*Math.cos(o.pit)*Math.cos(o.yaw));g.fc.lookAt(o.tx,.8,o.tz);cam=g.fc}
-g.gz.visible=free&&has;g.helpers.visible=free;
+g.gz.visible=free&&has;g.helpers.visible=free;refSync(free);
 const sl=$('#tSc');if(document.activeElement!==sl)sl.value=tot?tm/tot*1000:0;
 $('#tTm').textContent=tm.toFixed(1).replace('.',',')+' / '+tot.toFixed(1).replace('.',',')+' s';
 $('#hud').textContent=free?(has?'🧭 VISTA LIBRE':'🧭 VISTA LIBRE · este plano aún no tiene cámara'):'● REC  '+s.n+'  ·  '+s.lens+' mm  ·  '+tc(tm);
@@ -723,13 +724,13 @@ if(!rc.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0,1,0),-base.y),hit)
 if(u.k==='ct'){if(p.tx===x&&p.ty===y)return;if(!d3.moved){pushU();d3.moved=1}p.tx=x;p.ty=y}else{if(p.x===x&&p.y===y)return;if(!d3.moved){pushU();d3.moved=1}p.x=x;p.y=y}}
 helpers3D();info3()}
 document.querySelectorAll('[data-h3]').forEach(b=>b.onclick=()=>{h3.m=b.dataset.h3;document.querySelectorAll('[data-h3]').forEach(x=>x.classList.toggle('on',x===b))});
-glc.addEventListener('pointerdown',e=>{if(!G||!isFree())return;glc.setPointerCapture(e.pointerId);const o=e.button===0&&!e.shiftKey?pick3(e):null;if(o){d3={u:Object.assign({},o.userData),moved:0};sel3=Object.assign({},o.userData);helpers3D();info3();glc.style.cursor='grabbing';return}ob={x:e.clientX,y:e.clientY,pan:e.shiftKey||e.button===2}});
-glc.addEventListener('pointermove',e=>{if(d3){drag3(e);return}if(!ob&&G&&isFree()){glc.style.cursor=pick3(e)?'grab':''}if(!ob||!G)return;const dx=e.clientX-ob.x,dy=e.clientY-ob.y,o=G.orb;ob.x=e.clientX;ob.y=e.clientY;
+glc.addEventListener('pointerdown',e=>{if(G&&!isFree()&&lkDown(e))return;if(!G||!isFree())return;glc.setPointerCapture(e.pointerId);const o=e.button===0&&!e.shiftKey?pick3(e):null;if(o){d3={u:Object.assign({},o.userData),moved:0};sel3=Object.assign({},o.userData);helpers3D();info3();glc.style.cursor='grabbing';return}ob={x:e.clientX,y:e.clientY,pan:e.shiftKey||e.button===2}});
+glc.addEventListener('pointermove',e=>{if(lk){lkMove(e);return}if(d3){drag3(e);return}if(!ob&&G&&isFree()){glc.style.cursor=pick3(e)?'grab':''}if(!ob||!G)return;const dx=e.clientX-ob.x,dy=e.clientY-ob.y,o=G.orb;ob.x=e.clientX;ob.y=e.clientY;
 if(ob.pan){const f=o.dist*.0016,sn=Math.sin(o.yaw),cs=Math.cos(o.yaw);o.tx+=-cs*dx*f-sn*dy*f;o.tz+=sn*dx*f-cs*dy*f}
 else{o.yaw-=dx*.006;o.pit=Math.max(.05,Math.min(1.5,o.pit+dy*.005))}});
-glc.addEventListener('pointerup',()=>{if(d3){if(d3.moved){save();v3Insp()}d3=null;glc.style.cursor=''}ob=null});glc.addEventListener('pointercancel',()=>{ob=null});
+glc.addEventListener('pointerup',()=>{if(lk){if(lk.moved){save();v3Insp()}lk=null;glc.style.cursor=''}if(d3){if(d3.moved){save();v3Insp()}d3=null;glc.style.cursor=''}ob=null});glc.addEventListener('pointercancel',()=>{ob=null});
 glc.addEventListener('contextmenu',e=>e.preventDefault());
-glc.addEventListener('wheel',e=>{if(!G||!isFree())return;e.preventDefault();G.orb.dist=Math.max(.8,Math.min(60,G.orb.dist*Math.exp(e.deltaY*.001)))},{passive:false});
+glc.addEventListener('wheel',e=>{if(G&&!isFree()&&lkWheel(e))return;if(!G||!isFree())return;e.preventDefault();G.orb.dist=Math.max(.8,Math.min(60,G.orb.dist*Math.exp(e.deltaY*.001)))},{passive:false});
 /* ---------- botones ---------- */
 $('#cat').innerHTML=CAT.filter(c=>c.t!=='glb').map(c=>'<button data-add="'+c.t+'">'+c.e+' '+c.n+'</button>').join('');
 $('#cat').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if(b)add(b.dataset.add)});
@@ -848,6 +849,86 @@ $('#opRep').onclick=async()=>{const p=pend;pend=null;$('#op').hidden=true;await 
 $('#opAdd').onclick=async()=>{const p=pend;pend=null;$('#op').hidden=true;await projModels(p.P);$('#ioT').value=JSON.stringify(p.P.S);$('#ioAdd').click();mList()};
 $('#opNo').onclick=()=>{pend=null;$('#op').hidden=true};
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='s'){e.preventDefault();projSave(e.shiftKey)}},true);
+
+/* ---- Vídeo de referencia y ajuste de cámara mirando por el visor ---- */
+let refKey=null,refURL=null,lk=null;const refV=$('#refV');
+function refUI(){const el=$('#refBox');if(!el)return;const s=cur(),r=s&&s.ref;
+if(!s){el.innerHTML='<p class="hint">Elige un plano.</p>';return}
+if(!r){el.innerHTML='<button id="refLoad" style="width:100%">🎞️ Cargar vídeo para este plano…</button><p class="hint">Se ve superpuesto en «Cámara del plano» y avanza con la línea de tiempo, para encajar la cámara con el vídeo.</p>';return}
+el.innerHTML='<p class="hint">🎞️ '+esc(r.n)+(r.miss?' · <b>no está en este navegador</b>: vuelve a cargarlo':'')+'</p><label class="chk"><input type="checkbox" id="refOn"'+(r.show!==false?' checked':'')+'> Mostrar</label>'
++'<label>Opacidad<input type="range" id="refOp" min="0" max="1" step=".05" value="'+(r.op==null?.5:r.op)+'" style="width:100%"></label>'
++'<div class="row"><label>Empieza en (s)<input type="number" id="refOff" step=".1" min="0" value="'+(r.off||0)+'"></label><label>Objetivo (mm)<input type="number" id="refLens" step="1" min="10" value="'+s.lens+'"></label></div>'
++'<button id="refAI" class="pri" style="width:100%;margin:6px 0">✨ Recrear con Claude (set y cámara)</button><p class="hint" id="refAIs"></p>'
++'<div class="row"><button id="refLoad">Cambiar vídeo</button><button id="refDel" class="dng">Quitar</button></div>'
++'<p class="hint">En «Cámara del plano»: arrastra para girar la cámara, Mayús+arrastrar para desplazarla, rueda para acercarla o alejarla. Se ajusta el punto de cámara más cercano al momento actual.</p>'}
+function refSync(free){const s=cur(),r=s&&s.ref;if(!r||free||r.show===false||r.miss){if(refV.style.display!=='none'){refV.style.display='none';refV.pause()}return}
+if(refKey!==r.k){refKey=r.k;refV.style.display='none';if(refURL){URL.revokeObjectURL(refURL);refURL=null}idbGet(r.k).then(b=>{if(refKey!==r.k)return;if(!b){r.miss=true;refUI();return}refURL=URL.createObjectURL(b);refV.src=refURL}).catch(()=>{});return}
+if(!refV.src||refV.readyState<1)return;const c=$('#gl');refV.style.display='';refV.style.left=c.offsetLeft+'px';refV.style.top=c.offsetTop+'px';refV.style.width=c.offsetWidth+'px';refV.style.height=c.offsetHeight+'px';refV.style.opacity=r.op==null?.5:r.op;
+const want=Math.max(0,(r.off||0)+tm);if(playing){if(refV.paused)refV.play().catch(()=>{});if(Math.abs(refV.currentTime-want)>.25)refV.currentTime=want}else{if(!refV.paused)refV.pause();if(!refV.seeking&&Math.abs(refV.currentTime-want)>.03)refV.currentTime=want}}
+async function refSet(f){const s=cur();if(!s||!f)return;if(!/^video\//.test(f.type)&&!/\.(mp4|webm|mov|m4v|ogv)$/i.test(f.name)){toast('Eso no parece un vídeo');return}
+const k='V'+Date.now().toString(36)+Math.random().toString(36).slice(2,5);try{await idbPut(k,f)}catch(e){toast('No hay espacio para guardar el vídeo en este navegador');return}
+const v=document.createElement('video');v.preload='metadata';const u=URL.createObjectURL(f);v.src=u;
+const md=await new Promise(res=>{v.onloadedmetadata=()=>res({d:v.duration,w:v.videoWidth,h:v.videoHeight});v.onerror=()=>res(null);setTimeout(()=>res(null),8000)});URL.revokeObjectURL(u);
+if(!md){toast('El navegador no puede reproducir ese vídeo (prueba con MP4 H.264)');return}
+pushU();const old=s.ref;s.ref={k,n:f.name,off:0,op:old&&old.op!=null?old.op:.5,show:true,dur:Math.round(md.d*100)/100};refKey=null;
+let msg='Vídeo cargado: '+f.name;if(md.w&&md.h){const ar=md.w/md.h,opts=[...$('#aspSel').options].map(o=>+o.value),best=opts.reduce((a,b)=>Math.abs(b-ar)<Math.abs(a-ar)?b:a);if(best!==asp){asp=best;$('#aspSel').value=String(best);if(G)G.cw=0;msg+=' · formato ajustado a '+$('#aspSel').selectedOptions[0].text}}
+save();refUI();v3Insp();toast(msg);if(isFree())document.querySelector('[data-view="shot"]').click()}
+$('#refFile').onchange=e=>{const f=e.target.files[0];e.target.value='';refSet(f)};
+$('#refBox').addEventListener('click',e=>{const id=e.target.id,s=cur();if(id==='refAI')refAI();if(id==='refLoad')$('#refFile').click();if(id==='refDel'&&s&&s.ref){pushU();delete s.ref;refKey=null;save();refUI();v3Insp()}});
+$('#refBox').addEventListener('input',e=>{const s=cur(),r=s&&s.ref,id=e.target.id,v=+e.target.value;if(!r)return;if(id==='refOn')r.show=e.target.checked;else if(id==='refOp')r.op=v;else if(id==='refOff'&&v>=0)r.off=v;else if(id==='refLens'&&v>=10){s.lens=v}save()});
+function lkIdx(s){let a=0,best=0,bd=1e9;s.pts.forEach((p,i)=>{a+=p.d;const d=Math.abs(a-tm);if(d<bd){bd=d;best=i}});let t=0;for(let i=0;i<=best;i++)t+=s.pts[i].d;return{i:best,t}}
+function lkDown(e){const s=cur();if(!s||!s.pts.length)return false;glc.setPointerCapture(e.pointerId);const k=lkIdx(s);if(!playing)tm=k.t;lk={i:k.i,x:e.clientX,y:e.clientY,pan:e.shiftKey||e.button===2,moved:0};glc.style.cursor='grabbing';$('#h3i').textContent='Ajustando el punto de cámara '+(k.i+1)+' mirando por el visor';return true}
+function lkMove(e){const s=cur(),p=s&&s.pts[lk.i];if(!p)return;const dx=e.clientX-lk.x,dy=e.clientY-lk.y;lk.x=e.clientX;lk.y=e.clientY;if(!dx&&!dy)return;if(!lk.moved){pushU();lk.moved=1}
+const P=new THREE.Vector3(p.x,p.h,p.y),Q=new THREE.Vector3(p.tx,p.th,p.ty),d=Q.clone().sub(P),r=Math.max(.3,d.length());
+if(lk.pan){const R=new THREE.Vector3().crossVectors(d,new THREE.Vector3(0,1,0)).normalize(),k=.008*Math.max(1,r/4),m=R.multiplyScalar(dx*k).add(new THREE.Vector3(0,-dy*k,0));
+if(P.y+m.y<.05)m.y=.05-P.y;P.add(m);Q.add(m)}
+else{const f=.0025*Math.tan(lensFov(s.lens)/2)*2;let yaw=Math.atan2(d.x,d.z),pit=Math.asin(Math.max(-1,Math.min(1,d.y/r)));yaw-=dx*f;pit=Math.max(-1.45,Math.min(1.45,pit-dy*f));
+Q.set(P.x+r*Math.cos(pit)*Math.sin(yaw),P.y+r*Math.sin(pit),P.z+r*Math.cos(pit)*Math.cos(yaw))}
+p.x=r3(P.x);p.h=r3(P.y);p.y=r3(P.z);p.tx=r3(Q.x);p.th=r3(Math.max(0,Q.y));p.ty=r3(Q.z)}
+function lkWheel(e){const s=cur();if(!s||!s.pts.length)return false;e.preventDefault();const k=lkIdx(s),p=s.pts[k.i];if(!playing)tm=k.t;if(!lkWheel.t)pushU();
+const P=new THREE.Vector3(p.x,p.h,p.y),Q=new THREE.Vector3(p.tx,p.th,p.ty),d=Q.clone().sub(P).normalize().multiplyScalar(-e.deltaY*.003);P.add(d);Q.add(d);
+p.x=r3(P.x);p.h=r3(Math.max(.05,P.y));p.y=r3(P.z);p.tx=r3(Q.x);p.th=r3(Math.max(0,Q.y));p.ty=r3(Q.z);clearTimeout(lkWheel.t);lkWheel.t=setTimeout(()=>{lkWheel.t=null;save()},400);return true}
+
+/* ---- Recrear set y cámara desde el vídeo con Claude ---- */
+function vzPrompt(times,dur){const cat=CAT.filter(c=>c.t!=='glb').map(c=>c.t+' ('+c.n+', '+c.w+'x'+c.h+' m)').join('; ');
+return `Eres un experto en previsualización de cine y en "match-moving". Te paso ${times.length} fotogramas de un mismo plano de vídeo, en orden, tomados en estos segundos desde el inicio del plano: ${times.map(t=>t.toFixed(2)).join(', ')} (el plano dura ${dur.toFixed(2)} s).
+Tu tarea: deducir el espacio, la posición de los personajes y el movimiento de la cámara, y describirlo como una planta cenital esquemática.
+COORDENADAS: metros; origen (0,0) en la esquina superior izquierda del espacio; x hacia la derecha, y hacia abajo (planta vista desde arriba). Altura en metros sobre el suelo. Rotación r en grados, sentido horario; con r=0 el frente mira hacia -y y con r=90 hacia +x.
+Estima la escala con referencias conocidas: una puerta mide unos 2,05 m de alto, una persona 1,70 m, una mesa 0,75 m, un coche 1,5 m de alto y 4,4 m de largo.
+CÁMARA: para CADA fotograma da un punto {t, x, y, h, tx, ty, th}: (x,y,h) es la posición de la cámara y (tx,ty,th) un punto al que mira (a 2-4 m de distancia, sobre el centro del encuadre). Si la cámara no se mueve, repite la misma posición. Estima también la focal equivalente en "lente" (mm, sensor de 36 mm de ancho): gran angular 18-28, normal 35-50, tele 85+.
+MUROS: segmentos {x1,y1,x2,y2} solo de las paredes que se ven o se deducen. Si es exterior, pocos o ninguno.
+PROPS: solo estos tipos (campo t): ${cat}. Cada uno {t,x,y,r,n} con x,y en el CENTRO; w y h solo si hace falta. Puertas y ventanas sobre la línea del muro (r=0 muro horizontal, r=90 vertical).
+PERSONAJES: t="actor" por persona visible, con n (descripción breve, p. ej. "Mujer abrigo rojo"), rol ("pj" quien protagoniza, "sec", "ext"), sexo ("m"/"f"), pose (stand, walk, run, phone, talk, sit, crouch, cross, up, point, lie) y r, en su posición del primer fotograma.
+Prioriza que la cámara encaje: lo que se ve en cada fotograma debe caer en el encuadre desde ese punto con esa focal.
+Responde SOLO con JSON: {"nombre":"descripción corta del lugar","suelo":"int"|"ext","momento":"dia"|"atardecer"|"noche","lente":35,"muros":[...],"props":[...],"camara":[{"t":0,"x":0,"y":0,"h":1.6,"tx":0,"ty":0,"th":1.5}]}`}
+function vzFrames(blob,times){return new Promise((res,rej)=>{const v=document.createElement('video');v.muted=true;v.preload='auto';const u=URL.createObjectURL(blob);v.src=u;const out=[];let i=0;
+const cv2=document.createElement('canvas'),fail=m=>{URL.revokeObjectURL(u);rej(new Error(m))},tmo=setTimeout(()=>fail('el vídeo tarda demasiado en leerse'),30000);
+const next=()=>{if(i>=times.length){clearTimeout(tmo);URL.revokeObjectURL(u);res(out);return}const t=Math.min(times[i],Math.max(0,v.duration-.05));if(Math.abs(v.currentTime-t)<.01)grab();else v.currentTime=t};
+v.onloadeddata=()=>{const k=Math.min(1,960/v.videoWidth);cv2.width=Math.round(v.videoWidth*k);cv2.height=Math.round(v.videoHeight*k);next()};
+const grab=()=>{cv2.getContext('2d').drawImage(v,0,0,cv2.width,cv2.height);cv2.toBlob(b=>{if(!b)return fail('no se pudo capturar el fotograma');out.push(b);i++;next()},'image/jpeg',.85)};v.onseeked=grab;
+v.onerror=()=>fail('el navegador no puede leer el vídeo')})}
+async function refAI(){const s=cur(),r=s&&s.ref,st=$('#refAIs');if(!r)return;const say=t=>{const e=$('#refAIs');if(e)e.textContent=t};
+let sample=null;try{sample=window.claude&&claude.use?await claude.use('sample'):null}catch(e){}
+if(!sample){say('Esta función solo está disponible al abrir la app desde claude.ai.');return}
+const lim=await sample.limits().catch(()=>null);if(!lim||!lim.images){say('Aquí no se pueden enviar imágenes a Claude.');return}
+const b=await idbGet(r.k).catch(()=>null);if(!b){say('No encuentro el vídeo en este navegador: vuelve a cargarlo.');return}
+const btn=$('#refAI');if(btn)btn.disabled=true;
+try{const off=r.off||0,end=Math.max(off+.1,r.dur||off+1),n=Math.max(2,Math.min(6,lim.images.maxCount||6)),times=[];for(let i=0;i<n;i++)times.push(off+(end-off-.05)*i/(n-1));
+say('Capturando '+n+' fotogramas…');const imgs=await vzFrames(b,times);
+say('Claude está analizando el plano… (puede tardar un minuto)');
+const j=await sample.json(vzPrompt(times.map(t=>t-off),end-off),{images:imgs,modelTier:'complex',cache:false}),d=sgBuild(j);
+const num=(v,a,c,df)=>{v=+v;return Number.isFinite(v)?Math.max(a,Math.min(c,v)):df};
+let cam=(Array.isArray(j.camara)?j.camara:[]).map(c=>({t:num(c.t,0,600,0),x:num(c.x,-60,60,0),y:num(c.y,-60,60,0),h:num(c.h,.05,30,1.6),tx:num(c.tx,-60,60,0),ty:num(c.ty,-60,60,0),th:num(c.th,0,30,1.5)})).sort((a,c)=>a.t-c.t);
+if(!cam.length)throw new Error('Claude no devolvió la cámara');
+const pts=cam.map((c,i)=>({x:r3(c.x),y:r3(c.y),h:r3(c.h),tx:r3(c.tx),ty:r3(c.ty),th:r3(c.th),d:i?Math.max(.1,r3(c.t-cam[i-1].t)):0}));
+pushU();locStash();const id=S.nid++,shId=S.nid++;
+const items=d.props.map(a=>{const o={id:S.nid++,t:a.t,n:a.n,x:a.x,y:a.y,w:a.w,h:a.h,r:a.r};if(a.t==='actor'){if(a.role)o.role=a.role;o.sx=a.sx}if(a.pose&&(a.t==='actor'||a.t==='perro'))o.pose=a.pose;return norm(o)});
+const walls=d.walls.map(w=>({id:S.nid++,x1:w.x1,y1:w.y1,x2:w.x2,y2:w.y2,t:.15}));
+const shot={id:shId,n:'Ref · '+r.n.replace(/\.[^.]+$/,''),lens:Math.round(num(j.lente,10,300,35)),pts,mv:[],ref:Object.assign({},r)};
+S.stash[id]={items,walls,shots:[shot],cur:shId,ground:d.ground,tod:d.tod,sun:220};S.locs.push({id,n:'Ref: '+d.n});locLoad(id);ci=-1;rsel=null;rpi=-1;playing=false;tm=0;
+locUI();save();setMode('v3');toast('Localización «Ref: '+d.n+'» creada · Ctrl+Z para deshacer')}
+catch(e){const c=e&&e.code;say(c==='not_granted'?'Has rechazado el permiso. Vuelve a pulsar y acéptalo.':c==='rate_limited'?'Demasiadas peticiones seguidas: espera un momento.':'No se pudo analizar: '+((e&&e.message)||'error desconocido')+'.')}
+finally{const bt=$('#refAI');if(bt)bt.disabled=false}}
 locUI();mList();saved();
 new ResizeObserver(()=>{readCol();if(!fitted&&cv.clientWidth){fitted=true;fit()}else draw()}).observe($('#stage'));
 readCol();insp();
