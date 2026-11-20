@@ -6,7 +6,7 @@ import { D2R, ROLEC, ROLES, POSES, PLIST, DPOSES, DLIST, SL, HAIRS, HAIRC, SKIN,
 const $=s=>document.querySelector(s);
 const cv=$('#cv'),cx=cv.getContext('2d');
 const opts=l=>l.map(a=>'<option value="'+a[0]+'">'+a[1]+'</option>').join('');
-function actUI(){return '<h3>Persona</h3><label>Rol<select id="pRole" style="width:100%">'+opts(ROLES)+'</select></label><label>Sexo<select id="aSx" style="width:100%"><option value="m">Hombre</option><option value="f">Mujer</option></select></label><label>Pose<select id="pPose" style="width:100%">'+opts(PLIST)+'</select></label><details><summary class="hint" style="cursor:pointer;margin-bottom:8px">Ajuste fino de la pose</summary>'+SL.map(a=>'<label>'+a[1]+'<input type="range" id="k_'+a[0]+'" min="'+a[2]+'" max="'+a[3]+'" step="1" style="width:100%"></label>').join('')+'</details><details><summary class="hint" style="cursor:pointer;margin-bottom:8px">Aspecto</summary><label>Pelo<select id="aHs" style="width:100%">'+opts(HAIRS)+'</select></label><label>Color de pelo<select id="aHc" style="width:100%">'+opts(HAIRC)+'</select></label><label>Piel<select id="aSk" style="width:100%">'+opts(SKIN)+'</select></label><label>Color del pantalón<input type="color" id="aPc" style="width:100%;height:32px;padding:0"></label></details>'}
+function actUI(){return '<h3>Persona</h3><label>Rol<select id="pRole" style="width:100%">'+opts(ROLES)+'</select></label><label>Sexo<select id="aSx" style="width:100%"><option value="m">Hombre</option><option value="f">Mujer</option></select></label><label>Pose<select id="pPose" style="width:100%">'+opts(PLIST)+'</select></label><details><summary class="hint" style="cursor:pointer;margin-bottom:8px">Ajuste fino de la pose</summary>'+SL.map(a=>'<label>'+a[1]+'<input type="range" id="k_'+a[0]+'" min="'+a[2]+'" max="'+a[3]+'" step="1" style="width:100%"></label>').join('')+'</details><details><summary class="hint" style="cursor:pointer;margin-bottom:8px">Aspecto</summary><label>Pelo<select id="aHs" style="width:100%">'+opts(HAIRS)+'</select></label><label>Color de pelo<select id="aHc" style="width:100%">'+opts(HAIRC)+'</select></label><label>Piel<select id="aSk" style="width:100%">'+opts(SKIN)+'</select></label><label>Color del pantalón<input type="color" id="aPc" style="width:100%;height:32px;padding:0"></label></details><h3>Modelo animado</h3><select id="aMd" style="width:100%"></select><div id="aMap"></div>'}
 function dogUI(){return '<h3>Perro</h3><label>Pose<select id="pPose" style="width:100%">'+opts(DLIST)+'</select></label>'}
 function actInput(o,id,val){if(id==='pRole')o.role=val;else if(id==='pPose'){o.pose=val;o.pp=null;sync()}else if(id==='aSx'){o.sx=val;if(val==='f'&&o.hs==='short')o.hs='long';else if(val==='m'&&(o.hs==='long'||o.hs==='tail'))o.hs='short'}else if(id==='aHs')o.hs=val;else if(id==='aHc')o.hc=val;else if(id==='aSk')o.sk=val;else if(id==='aPc')o.pc=val;else{o.pp=o.pp||Object.assign({},poseOf(o));o.pp[id.slice(2)]=parseFloat(val)}}
 function norm(o){const z=ZD[o.t]||[.8,0];if(o.z==null)o.z=z[0];if(o.e==null)o.e=z[1];
@@ -134,6 +134,7 @@ else el.innerHTML='<div class="row"><label>Grosor (m)<input type="number" id="pT
 sync()}
 function sync(){if(mode==='cam'){camSync();return}const o=selObj();if(!o)return;const set=(id,v)=>{const e=$(id);if(e&&document.activeElement!==e)e.value=v};
 if(sel.k==='i'){set('#pN',o.n);set('#pW',r3(o.w));set('#pH',r3(o.h));set('#pR',Math.round(o.r));set('#pZ',r3(o.z));set('#pE',r3(o.e));set('#pRd',r3(o.rd||0));
+if(o.t==='actor'){mdUI(o)}
 if(o.t==='actor'||o.t==='perro'){set('#pRole',o.role||'pj');set('#pPose',o.pose||'stand');set('#aSx',o.sx||'m');set('#aHs',o.hs||'short');set('#aHc',o.hc||'k');set('#aSk',o.sk||'1');set('#aPc',o.pc||'#3a4050')}
 if(o.t==='actor'){const PP=poseOf(o);SL.forEach(a=>set('#k_'+a[0],PP[a[0]]||0))}
 if(LAMP.includes(o.t)){const on=$('#pOn');if(on)on.checked=!!o.on;set('#pC',o.lc);set('#pLr',o.lr);set('#pLi',o.li)}
@@ -141,6 +142,8 @@ const d=$('#pDh');if(d)d.textContent='Bisagra a la '+(o.hg===-1?'izquierda':'der
 else{set('#pT',o.t);set('#pHz',r3(o.hz||2.6));const l=$('#pL');if(l)l.textContent=Math.hypot(o.x2-o.x1,o.y2-o.y1).toFixed(2).replace('.',',')+' m'}}
 $('#insp').addEventListener('focusin',()=>pushU());
 $('#insp').addEventListener('input',e=>{if(mode==='cam'){camInput(e);return}const o=selObj();if(!o)return;const v=parseFloat(e.target.value),id=e.target.id;
+if(id==='aMd'){pushU();if(e.target.value)o.md=e.target.value;else delete o.md;mdUI(o);save();draw();return}
+if(id.slice(0,4)==='aMp_'){const md=S.models.find(x=>x.id===o.md);if(md){pushU();md.map=md.map||{};if(e.target.value)md.map[id.slice(4)]=e.target.value;else delete md.map[id.slice(4)];save()}return}
 if(id==='pRole'||id==='pPose'||id.slice(0,2)==='k_'||id==='aSx'||id==='aHs'||id==='aHc'||id==='aSk'||id==='aPc'){actInput(o,id,e.target.value);save();draw();return}
 if(id==='pN')o.n=e.target.value;else if(id==='pW'&&v>0)o.w=v;else if(id==='pH'&&v>0)o.h=v;else if(id==='pR'&&!isNaN(v))o.r=((v%360)+360)%360;else if(id==='pT'&&v>0)o.t=v;else if(id==='pHz'&&v>0)o.hz=v;else if(id==='pRd'&&v>=0)o.rd=v;else if(id==='pZ'&&v>0)o.z=v;else if(id==='pE'&&v>=0)o.e=v;else if(id==='pC')o.lc=e.target.value;else if(id==='pLr'&&v>0)o.lr=v;else if(id==='pLi'&&v>0)o.li=v;else if(id==='pOn')o.on=e.target.checked;
 save();draw()});
@@ -226,10 +229,10 @@ let h='<label>Nombre del plano<input type="text" id="cN"></label><label>Lente (m
 if(q)h+='<h3>Punto '+(ci+1)+'</h3><div class="row"><label>Alt. cámara (m)<input type="number" id="cH" step=".1" min=".1"></label><label>Alt. objetivo (m)<input type="number" id="cT" step=".1" min="0"></label></div><label>'+(ci?'Tiempo desde el punto anterior (s)':'Espera inicial (s)')+'<input type="number" id="cD" step=".5" min="0"></label><p class="hint" id="cI"></p><button id="cX" class="dng">Eliminar punto</button>';
 else h+='<p class="hint">Selecciona un punto de la cámara para editar su altura, su objetivo y su tiempo.</p>';
 h+=routeUI();h+='<p class="hint" id="cTot"></p>';el.innerHTML=h;camSync()}
-function camSync(){const sh=cur();if(!sh)return;const q=sh.pts[ci];setv('#cN',sh.n);setv('#cL',sh.lens);const rm=curRoute();if(rm){setv('#rV',rm.spd);setv('#rD',rm.dl);setv('#rA',rm.anim)}
+function camSync(){const sh=cur();if(!sh)return;const q=sh.pts[ci];setv('#cN',sh.n);setv('#cL',sh.lens);const rm=curRoute()||rdef;setv('#rV',rm.spd);setv('#rD',rm.dl);setv('#rA',rm.anim);
 const f=$('#cF');if(f)f.textContent='Ángulo de visión horizontal: '+Math.round(lensFov(sh.lens)*180/Math.PI)+'°';
 if(q){setv('#cH',r3(q.h));setv('#cT',r3(q.th));setv('#cD',r3(q.d));const i=$('#cI');if(i){const d=Math.hypot(q.tx-q.x,q.ty-q.y);i.textContent='Inclinación: '+Math.round(Math.atan2(q.th-q.h,d)*180/Math.PI)+'° · distancia al objetivo: '+d.toFixed(1)+' m'}}
-const t=$('#cTot');if(t){const n=sh.pts.reduce((a,p)=>a+p.d,0);t.textContent=sh.pts.length?(sh.pts.length===1?'Plano fijo · ':'Movimiento · ')+'duración total '+n.toFixed(1)+' s':'Sin puntos: usa ＋ y haz clic en la planta.'}}
+const t=$('#cTot');if(t){const n=sh.pts.reduce((a,p)=>a+p.d,0);t.textContent=sh.pts.length?(sh.pts.length===1?'Plano fijo · ':'Movimiento · ')+'duración total '+n.toFixed(1)+' s':(tool==='route'?'':'Sin puntos de cámara: usa ＋ y haz clic en la planta.')}}
 function camInput(e){const sh=cur();if(!sh)return;const q=sh.pts[ci],v=parseFloat(e.target.value),id=e.target.id;
 if(id==='rV'||id==='rA'||id==='rD'){routeInput(id,e.target.value);save();draw();return}
 if(id==='cN'){sh.n=e.target.value;shotList()}else if(id==='cL'&&v>=10)sh.lens=v;else if(q){if(id==='cH'&&v>0)q.h=v;else if(id==='cT'&&v>=0)q.th=v;else if(id==='cD'&&v>=0)q.d=v}
@@ -261,21 +264,25 @@ cx.setLineDash([4,4]);cx.strokeStyle=rgba(col.acc,.8);cx.lineWidth=1.5;cx.beginP
 cx.fillStyle=col.panel;cx.strokeStyle=col.ink;cx.lineWidth=2;cx.beginPath();cx.arc(t.x,t.y,7,0,7);cx.fill();cx.stroke();cx.beginPath();cx.moveTo(t.x-11,t.y);cx.lineTo(t.x+11,t.y);cx.moveTo(t.x,t.y-11);cx.lineTo(t.x,t.y+11);cx.stroke();
 cx.fillStyle=col.acc;cx.strokeStyle=on?col.sel:col.panel;cx.lineWidth=3;cx.beginPath();cx.arc(p.x,p.y,12,0,7);cx.fill();cx.stroke();
 cx.fillStyle='#fff';cx.font='700 12px system-ui,sans-serif';cx.textAlign='center';cx.textBaseline='middle';cx.fillText(i+1,p.x,p.y+.5)});cx.lineCap='butt'}
+let rdef={spd:1.4,anim:'auto',dl:0};
 const curRoute=()=>{const sh=cur();return sh&&sh.mv&&rsel!=null?sh.mv.find(m=>m.id===rsel)||null:null};
 const routeLen=(o,m)=>{let L=0,a={x:o.x,y:o.y};m.pts.forEach(q=>{L+=Math.hypot(q.x-a.x,q.y-a.y);a=q});return L};
 function routeUI(){const o=S.items.find(i=>i.id===rsel);
 if(!o)return tool==='route'?'<h3>Recorrido</h3><p class="hint">Pulsa un personaje o un perro de la planta y luego haz clic para trazar por dónde se mueve en este plano.</p>':'';
 const m=curRoute();
-return '<h3>Recorrido de '+esc(o.n)+'</h3>'+(m?'<label>Velocidad (m/s)<input type="number" id="rV" step=".1" min=".1"></label><label>Animación<select id="rA" style="width:100%"><option value="auto">Automática</option><option value="walk">Caminar</option><option value="run">Correr</option></select></label><label>Espera inicial (s)<input type="number" id="rD" step=".5" min="0"></label><p class="hint">'+m.pts.length+' puntos · longitud '+routeLen(o,m).toFixed(1)+' m. Haz clic sobre la línea para insertar un punto entre dos.</p><button id="rX" class="dng">Eliminar recorrido</button>':'<p class="hint">Haz clic en la planta para añadir el primer punto del recorrido.</p>')}
+return '<h3>Recorrido de '+esc(o.n)+'</h3><label>Velocidad (m/s)<input type="number" id="rV" step=".1" min=".1"></label><label>Animación<select id="rA" style="width:100%"><option value="auto">Automática</option><option value="walk">Caminar</option><option value="run">Correr</option></select></label><label>Espera inicial (s)<input type="number" id="rD" step=".5" min="0"></label>'+(m?'<p class="hint">'+m.pts.length+' puntos · longitud '+routeLen(o,m).toFixed(1)+' m. Haz clic sobre la línea para insertar un punto entre dos.</p><button id="rX" class="dng">Eliminar recorrido</button>':'<p class="hint">Elegido. Ahora haz clic en la planta, punto a punto, por donde debe moverse.</p>')}
 function pickAct(p){for(let i=S.items.length-1;i>=0;i--){const o=S.items[i];if((o.t!=='actor'&&o.t!=='perro')||!canPick(o))continue;const l=W2L(o,p.x,p.y),m=10/V.k;if(Math.abs(l.x)<=o.w/2+m&&Math.abs(l.y)<=o.h/2+m)return o}return null}
 function routeDown(p,s){const sh=cur();if(!sh)return;const m=curRoute();
 if(m){for(let i=m.pts.length-1;i>=0;i--){const q=w2s(m.pts[i]);if(Math.hypot(q.x-s.x,q.y-s.y)<12){pushU();rpi=i;drag={m:'rp',i};draw();return}}}
-rpi=-1;const a=pickAct(p);if(a){rsel=a.id;camInsp();draw();return}
-if(rsel!=null&&S.items.some(i=>i.id===rsel)){if(routeInsertAt(sh,s))return;pushU();sh.mv=sh.mv||[];let r=sh.mv.find(x=>x.id===rsel);if(!r){r={id:rsel,pts:[],spd:1.4,anim:'auto',dl:0};sh.mv.push(r)}r.pts.push({x:sv(p.x),y:sv(p.y)});camInsp();save();draw();return}
+rpi=-1;const a=pickAct(p);if(a){if(a.id!==rsel)rdef={spd:1.4,anim:'auto',dl:0};rsel=a.id;camInsp();draw();return}
+if(rsel!=null&&S.items.some(i=>i.id===rsel)){if(routeInsertAt(sh,s))return;pushU();sh.mv=sh.mv||[];let r=sh.mv.find(x=>x.id===rsel);if(!r){r=Object.assign({id:rsel,pts:[]},rdef);sh.mv.push(r)}r.pts.push({x:sv(p.x),y:sv(p.y)});camInsp();save();draw();return}
 drag={m:'pan',s,vx:V.x,vy:V.y}}
-function routeInput(id,val){const m=curRoute();if(!m)return;const v=parseFloat(val);if(id==='rV'&&v>0)m.spd=v;else if(id==='rD'&&v>=0)m.dl=v;else if(id==='rA')m.anim=val}
+function routeInput(id,val){const m=curRoute()||rdef;const v=parseFloat(val);if(id==='rV'&&v>0)m.spd=v;else if(id==='rD'&&v>=0)m.dl=v;else if(id==='rA')m.anim=val}
 function delRoute(){const sh=cur(),m=curRoute();if(!sh||!m)return;pushU();sh.mv=sh.mv.filter(x=>x!==m);camInsp();save();draw()}
-function drawRoutes(){const sh=cur();if(!sh||!sh.mv)return;const k=V.k;
+function drawRoutes(){const sh=cur();if(!sh)return;const k=V.k,so=rsel!=null&&S.items.find(i=>i.id===rsel);
+if(so&&!(sh.mv||[]).some(m=>m.id===rsel&&m.pts.length)){const q=w2s(so),rr=Math.max(so.w,so.h)*k*.7+6;cx.strokeStyle='#12b886';cx.lineWidth=3;cx.setLineDash([6,4]);cx.beginPath();cx.arc(q.x,q.y,rr,0,7);cx.stroke();cx.setLineDash([]);
+cx.font='600 12px system-ui';cx.textAlign='center';cx.fillStyle='#12b886';cx.fillText('elegido',q.x,q.y-rr-6)}
+if(!sh.mv)return;
 sh.mv.forEach(m=>{const o=S.items.find(i=>i.id===m.id);if(!o||!m.pts.length)return;const P=[w2s(o)].concat(m.pts.map(w2s)),on=m.id===rsel;
 cx.strokeStyle=on?'#12b886':'rgba(18,184,134,.65)';cx.lineWidth=on?3:2;cx.setLineDash([8,5]);cx.beginPath();P.forEach((q,i)=>i?cx.lineTo(q.x,q.y):cx.moveTo(q.x,q.y));cx.stroke();cx.setLineDash([]);
 cx.fillStyle=cx.strokeStyle;for(let i=1;i<P.length;i++){const a=P[i-1],b=P[i],g=Math.atan2(b.y-a.y,b.x-a.x),mx=(a.x+b.x)/2,my=(a.y+b.y)/2;cx.beginPath();cx.moveTo(mx+Math.cos(g)*7,my+Math.sin(g)*7);cx.lineTo(mx+Math.cos(g+2.5)*7,my+Math.sin(g+2.5)*7);cx.lineTo(mx+Math.cos(g-2.5)*7,my+Math.sin(g-2.5)*7);cx.fill()}
@@ -420,7 +427,7 @@ function walkD(o,an,dist){const run=an==='run',cyc=(run?1.6:.8)*((o.z||.55)/.55)
 if(run){const A=50,s2=Math.sin(ph+Math.PI*.9);P.fl=A*sn;P.fr=A*sn*.9;P.bl=-A*s2;P.br=-A*s2*.9;P.by=.92;P.tilt=-6+4*Math.sin(2*ph);P.hu=10}
 else{const A=25;P.fl=A*sn;P.br=A*sn;P.fr=-A*sn;P.bl=-A*sn;P.by=.98;P.hu=5}
 P.tail=20+15*Math.sin(ph*2);return P}
-function placeAct(a,x,y,hd,P){a.grp.position.set(x,a.o.e,y);if(hd)a.grp.rotation.y=a.o.t==='perro'?Math.atan2(-hd.y,hd.x):Math.atan2(hd.x,hd.y);a.u.setP(P);groundAct(a)}
+function placeAct(a,x,y,hd,P,st){a.grp.position.set(x,a.o.e,y);if(hd)a.grp.rotation.y=a.o.t==='perro'?Math.atan2(-hd.y,hd.x):Math.atan2(hd.x,hd.y);if(a.u.setS){a.u.setS(st||{k:a.o.pose||'stand',t:tm});return}a.u.setP(P);groundAct(a)}
 function resetActors(){if(!G||!G.act)return;G.act.forEach(a=>{a.grp.rotation.y=-a.o.r*D2R;placeAct(a,a.o.x,a.o.y,null,statP(a.o))})}
 function animActors(t){const sh=cur();if(!G||!G.act||!sh||!sh.mv)return;
 G.act.forEach(a=>{const o=a.o,m=sh.mv.find(x=>x.id===o.id);if(!m||!m.pts.length)return;
@@ -429,7 +436,7 @@ if(L<.01)return;
 const dist=Math.max(0,t-(m.dl||0))*m.spd,mv=dist>0&&dist<L;let d=Math.min(dist,L),i=0;while(i<seg.length-1&&d>seg[i]){d-=seg[i];i++}
 const u=seg[i]>0?d/seg[i]:0,x=P[i].x+(P[i+1].x-P[i].x)*u,y=P[i].y+(P[i+1].y-P[i].y)*u,dx=P[i+1].x-P[i].x,dy=P[i+1].y-P[i].y,dl=Math.hypot(dx,dy)||1;
 const an=m.anim==='auto'?(m.spd>=2.6?'run':'walk'):m.anim;
-placeAct(a,x,y,{x:dx/dl,y:dy/dl},mv?(o.t==='perro'?walkD(o,an,dist):walkP(o,an,dist)):statP(o))})}
+placeAct(a,x,y,{x:dx/dl,y:dy/dl},mv?(o.t==='perro'?walkD(o,an,dist):walkP(o,an,dist)):statP(o),mv?{k:an,d:dist}:{k:o.pose||'stand',t})})}
 function routeHelpers(g,sh){if(!sh||!sh.mv)return;sh.mv.forEach((m,mi)=>{const o=S.items.find(i=>i.id===m.id);if(!o||!m.pts.length)return;
 const v=[new THREE.Vector3(o.x,.06,o.y)].concat(m.pts.map(q=>new THREE.Vector3(q.x,.06,q.y)));
 g.helpers.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(v),new THREE.LineBasicMaterial({color:0x12b886})));
@@ -458,7 +465,7 @@ else if(t==='cama'){B(w,.3,d,0,0,0,'#7a5a38');B(w*.96,.22,d*.92,0,.3,d*.04,c);B(
 else if(t==='encimera'){B(w,H-.04,d,0,0,0,'#8c8f94');B(w,.04,d,0,H-.04,0,c)}
 else if(t==='puerta'){const p=new THREE.Group(),m=new THREE.Mesh(new THREE.BoxGeometry(w,H,.04),mat('#b98a55'));p.position.set(o.hg*w/2,0,0);p.rotation.y=1.3*o.hg*o.sw;m.position.set(-o.hg*w/2,H/2,0);m.castShadow=true;p.add(m);g.add(p)}
 else if(t==='ventana'){B(w,H,.03,0,0,0,'#bfe3f2',{a:.35}).castShadow=false;B(w,.04,.06,0,H/2,0,'#d8d8d8');B(.04,H,.06,0,0,0,'#d8d8d8')}
-else if(t==='actor'){const dd=dummy3D(o),fw=new THREE.Group();fw.rotation.y=Math.PI;fw.add(dd);g.userData.mv=dd.userData;g.add(fw)}
+else if(t==='actor'){const ac=o.md&&anim3D(o);if(ac){g.userData.mv=ac.userData;g.add(ac)}else{if(o.md)mLoad(o.md);const dd=dummy3D(o),fw=new THREE.Group();fw.rotation.y=Math.PI;fw.add(dd);g.userData.mv=dd.userData;g.add(fw)}}
 else if(t==='perro'){const dd=dog3D(o);g.userData.mv=dd.userData;g.add(dd)}
 else if(t==='escalera'){const n=Math.max(3,Math.round(H/.18));for(let i=0;i<n;i++)B(w,H*(i+1)/n,d/n,0,0,d/2-d*(i+.5)/n,c)}
 else if(t==='alfombra'){B(w,H,d,0,0,0,c);B(w*.84,H+.002,d*.8,0,0,0,'#e9d8b4');B(w*.7,H+.004,d*.6,0,0,0,c)}
@@ -627,12 +634,28 @@ async function idbPut(k,v){const db=await idb();return new Promise((res,rej)=>{c
 async function idbDel(k){const db=await idb();return new Promise((res,rej)=>{const tx=db.transaction('m','readwrite');tx.objectStore('m').delete(k);tx.oncomplete=()=>res();tx.onerror=()=>rej(tx.error)})}
 async function idbGet(k){const db=await idb();return new Promise((res,rej)=>{const q=db.transaction('m').objectStore('m').get(k);q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)})}
 function glbParse(buf){return new Promise((res,rej)=>{new THREE.GLTFLoader().parse(buf,'',res,rej)})}
-function mStore(id,gl){gl.scene.updateMatrixWorld(true);MC[id]={scene:gl.scene,box:new THREE.Box3().setFromObject(gl.scene)};mHave[id]=true}
+function mStore(id,gl){gl.scene.updateMatrixWorld(true);let rb=null,sk=false;gl.scene.traverse(n=>{if(n.isSkinnedMesh)sk=true;if(!rb&&n.isBone&&!(n.parent&&n.parent.isBone))rb=n});
+const clips=sk?(gl.animations||[]).map(c=>{c=c.clone();if(rb)c.tracks.forEach(tr=>{if(tr.name===rb.name+'.position'){for(let i=0;i<tr.values.length;i+=3){tr.values[i]=tr.values[0];tr.values[i+2]=tr.values[2]}}});return c}):[];
+MC[id]={scene:gl.scene,box:new THREE.Box3().setFromObject(gl.scene),clips};mHave[id]=true}
+const ANIMK=[['stand','Quieto',/idle|stand|breath|rest/i],['walk','Andar',/walk/i],['run','Correr',/run|jog|sprint/i],['sit','Sentado',/sit/i],['phone','Teléfono',/phone|call/i]];
+function mdUI(o){const sel=$('#aMd'),box=$('#aMap');if(!sel)return;const av=S.models.filter(m=>m.clips&&m.clips.length);
+sel.innerHTML='<option value="">Muñeco articulado</option>'+av.map(m=>'<option value="'+m.id+'">'+esc(m.n)+'</option>').join('');sel.value=o.md||'';
+const md=o.md&&S.models.find(m=>m.id===o.md);if(!md){box.innerHTML='<p class="hint">'+(av.length?'Elige un personaje animado importado.':'Importa en «Mis modelos 3D» un personaje .glb con animaciones (por ejemplo de ActionForge) y aparecerá aquí.')+'</p>';return}
+const mp=md.map||{};box.innerHTML='<p class="hint">Animación que usa en cada situación (Andar y Correr, también al seguir un recorrido):</p>'+ANIMK.map(k=>'<label>'+k[1]+'<select id="aMp_'+k[0]+'" style="width:100%"><option value="">—</option>'+md.clips.map(c=>'<option'+(mp[k[0]]===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>').join('')}
+function anim3D(o){const M=MC[o.md],md=S.models.find(m=>m.id===o.md);if(!M||!md||!M.clips.length)return null;
+const c=THREE.SkeletonUtils.clone(M.scene),b=M.box,k=(o.z||1.7)/Math.max(.1,b.max.y-b.min.y),root=new THREE.Group();c.scale.setScalar(k);c.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);root.add(c);
+c.traverse(n=>{if(!n.isMesh)return;n.castShadow=n.receiveShadow=true;n.frustumCulled=false;if(style!==0){const om=Array.isArray(n.material)?n.material[0]:n.material;n.material=mat(om&&om.color?'#'+om.color.getHexString():'#cccccc')}});
+const mixer=new THREE.AnimationMixer(c),byN=Object.fromEntries(M.clips.map(x=>[x.name,x])),sz=(o.z||1.7)/1.7;let cur=null;
+const pick=key=>{const mp=md.map||{},ch=key==='run'?['run','walk','stand']:key==='walk'?['walk','stand']:key==='sit'?['sit','stand']:key==='phone'?['phone','stand']:['stand'];for(const q of ch)if(mp[q]&&byN[mp[q]])return byN[mp[q]];return null};
+const setS=st=>{const clip=pick(st.k);if(!clip){if(cur){cur.stop();cur=null}mixer.update(0);return}const act=mixer.clipAction(clip);if(act!==cur){if(cur)cur.stop();act.play();cur=act}
+const sec=st.d!=null?st.d/((st.k==='run'?3.5:1.4)*sz):(st.t||0);act.time=clip.duration>0?sec%clip.duration:0;mixer.update(0)};
+root.userData={root,setS};return root}
 function mRebuild(){if(mode!=='v3'||!G)return;clearTimeout(mRebuild.t);mRebuild.t=setTimeout(()=>{const o0=Object.assign({},G.orb);build3D();Object.assign(G.orb,o0);prep3D()},60)}
 async function mLoad(id){if(!id||MC[id]||mBusy[id])return;mBusy[id]=1;try{const buf=await idbGet(id);if(!buf){mHave[id]=false;return}mStore(id,await glbParse(buf));mRebuild()}catch(e){console.error(e);mHave[id]=false}finally{delete mBusy[id]}}
-function mList(){const el=$('#mList');if(!el)return;el.innerHTML=S.models.map(m=>'<div class="mrow"><button data-m="'+m.id+'" title="'+esc(m.n)+' · '+m.w+'×'+m.h+'×'+m.z+' m">📦 '+esc(m.n)+(mHave[m.id]===false?' ⚠️':'')+'</button><button data-mdel="'+m.id+'" class="dng" title="Eliminar este modelo">🗑</button></div>').join('')}
-function mUses(id){let n=S.items.filter(o=>o.t==='glb'&&o.m===id).length;Object.values(S.stash||{}).forEach(d=>{n+=(d.items||[]).filter(o=>o.t==='glb'&&o.m===id).length});return n}
-function mPurge(ids){if(!ids.size)return;S.models=(S.models||[]).filter(m=>!ids.has(m.id));const keep=o=>!(o.t==='glb'&&ids.has(o.m));S.items=S.items.filter(keep);Object.values(S.stash||{}).forEach(d=>{d.items=(d.items||[]).filter(keep)})}
+function mList(){const el=$('#mList');if(!el)return;el.innerHTML=S.models.map(m=>'<div class="mrow"><button data-m="'+m.id+'" title="'+esc(m.n)+(m.clips&&m.clips.length?' · personaje animado ('+m.clips.length+' animaciones)':' · '+m.w+'×'+m.h+'×'+m.z+' m')+'">'+(m.clips&&m.clips.length?'🧍 ':'📦 ')+esc(m.n)+(mHave[m.id]===false?' ⚠️':'')+'</button><button data-mdel="'+m.id+'" class="dng" title="Eliminar este modelo">🗑</button></div>').join('')}
+const usesM=(o,id)=>(o.t==='glb'&&o.m===id)||(o.t==='actor'&&o.md===id);
+function mUses(id){let n=S.items.filter(o=>usesM(o,id)).length;Object.values(S.stash||{}).forEach(d=>{n+=(d.items||[]).filter(o=>usesM(o,id)).length});return n}
+function mPurge(ids){if(!ids.size)return;S.models=(S.models||[]).filter(m=>!ids.has(m.id));const keep=o=>!(o.t==='glb'&&ids.has(o.m)),unlink=a=>a.forEach(o=>{if(o.t==='actor'&&ids.has(o.md))delete o.md});S.items=S.items.filter(keep);unlink(S.items);Object.values(S.stash||{}).forEach(d=>{d.items=(d.items||[]).filter(keep);unlink(d.items)})}
 const mGone=new Set();
 async function mDelete(id){const m=S.models.find(x=>x.id===id);if(!m)return;const n=mUses(id);
 if(!await askBox('¿Eliminar el modelo «'+m.n+'»?',(n?'También se quitará de '+n+(n>1?' sitios':' sitio')+' donde está colocado. ':'')+'Se borra de este navegador y no se puede deshacer.','Eliminar'))return;
@@ -658,8 +681,8 @@ if(len){const p=20+js.length;dv.setUint32(p,len,true);dv.setUint32(p+4,0x004E494
 async function mAdd(name,buf){let gl;try{gl=await glbParse(buf)}catch(e){toast('No se pudo leer «'+name+'»'+(/draco/i.test(String(e&&e.message))?': está comprimido con Draco, no compatible':''));return false}
 const old=S.models.find(m=>m.n===name),id=old?old.id:'M'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 try{await idbPut(id,buf)}catch(e){toast('No hay espacio para guardar «'+name+'» en este navegador');return false}
-mStore(id,gl);const sz=MC[id].box.getSize(new THREE.Vector3()),k=Math.max(sz.x,sz.y,sz.z)>40?.01:1;
-if(!old){pushU();S.models.push({id,n:name,w:r3(Math.max(.05,sz.x*k)),h:r3(Math.max(.05,sz.z*k)),z:r3(Math.max(.05,sz.y*k))})}return true}
+mStore(id,gl);const sz=MC[id].box.getSize(new THREE.Vector3()),k=Math.max(sz.x,sz.y,sz.z)>40?.01:1,clips=MC[id].clips.map(c=>c.name);
+if(!old){pushU();const e={id,n:name,w:r3(Math.max(.05,sz.x*k)),h:r3(Math.max(.05,sz.z*k)),z:r3(Math.max(.05,sz.y*k))};if(clips.length){e.clips=clips;e.map={};ANIMK.forEach(a=>{const c=clips.find(n=>a[2].test(n));if(c)e.map[a[0]]=c})}S.models.push(e)}return true}
 async function mImport(files){let n=0;
 const mains=files.filter(f=>/\.(glb|gltf)$/i.test(f.name));if(!mains.length){toast('No hay ningún .glb ni .gltf en lo que has elegido');return}
 for(const f of mains){if(f.size>80e6){toast('«'+f.name+'» es demasiado grande (máx. 80 MB)');continue}toast('Leyendo '+f.name+'…');
@@ -667,7 +690,7 @@ let buf;try{buf=/\.glb$/i.test(f.name)?await f.arrayBuffer():await gltfToGlb(f,f
 if(await mAdd(f.name.replace(/\.(glb|gltf)$/i,''),buf))n++}
 if(n){save();mList();insp();mRebuild();toast(n===1?'Modelo importado: púlsalo en la lista para añadirlo':n+' modelos importados')}}
 function addModel(id){const m=S.models.find(x=>x.id===id);if(!m)return;pushU();const j=(S.items.length%5)*.2,p=s2w(cv.clientWidth/2,cv.clientHeight/2);
-const o=norm({id:S.nid++,t:'glb',m:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:m.w,h:m.h,z:m.z,r:0});S.items.push(o);sel={k:'i',id:o.id};setTool('select');insp();save();draw();if(!MC[id])mLoad(id)}
+const o=m.clips&&m.clips.length?norm({id:S.nid++,t:'actor',md:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:byT.actor.w,h:byT.actor.h,r:0}):norm({id:S.nid++,t:'glb',m:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:m.w,h:m.h,z:m.z,r:0});S.items.push(o);sel={k:'i',id:o.id};setTool('select');insp();save();draw();if(!MC[id])mLoad(id)}
 $('#mImp').onclick=()=>$('#mFile').click();$('#mDir').onclick=()=>$('#mFold').click();
 $('#mFold').onchange=e=>{const fs=[...e.target.files];e.target.value='';mImport(fs)};
 $('#mFile').onchange=e=>{const fs=[...e.target.files];e.target.value='';mImport(fs)};

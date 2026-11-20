@@ -42,6 +42,7 @@ dibujas el set   colocas planos     ves la secuencia
 - **Tiradores** de esquina, laterales y de giro, y redondeo de esquinas.
 - **Capas** (Suelo, Muebles y Techo) para ocultar o bloquear. Lo más alto siempre se dibuja encima.
 - **Personas** con rol (personaje, secundario o extra), sexo, poses predefinidas y ajuste fino, y aspecto (pelo, piel, ropa). También hay **perro**.
+- **Personajes animados**: importa un personaje `.glb` con animaciones (por ejemplo de [ActionForge](https://actionforge.app) o Mixamo) y úsalo en lugar del muñeco. Anda, corre o se queda quieto según su recorrido.
 - **Mis modelos 3D**: importa tus propios `.glb` o carpetas `.gltf` con texturas, de [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com) o [Kenney](https://kenney.nl).
 
 ### 🎥 Cámara
