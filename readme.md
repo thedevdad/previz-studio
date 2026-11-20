@@ -93,16 +93,31 @@ dibujas el set   colocas planos     ves la secuencia
 
 ## 🛠️ Cómo está hecho
 
-- **Un único archivo `index.html`**: HTML, CSS y JavaScript sin dependencias que instalar ni servidor.
-- **[Three.js r128](https://threejs.org)** para el 3D, con `GLTFLoader` para los modelos importados.
-- Lo que tienes abierto se guarda en el **almacenamiento del navegador**; los proyectos, en **archivos tuyos**.
-- Publicado con **GitHub Pages**.
+- Proyecto **[Vite](https://vite.dev)** con el código separado en módulos dentro de `src/`.
+- **[Three.js](https://threejs.org)** para el 3D, con `GLTFLoader` para los modelos importados.
+- Los proyectos se guardan en **archivos tuyos** (`.previz.json`); la app empieza siempre vacía.
+- Publicado con **GitHub Pages**. La versión anterior, de un solo archivo HTML, está en la etiqueta `v1-html`.
+
+### Desarrollo
+
+Necesitas [Node.js](https://nodejs.org) (versión LTS). En una terminal **PowerShell**, dentro de la carpeta del proyecto:
+
+```
+npm install
+npm run dev
+```
+
+Abre la dirección que aparece (normalmente `http://localhost:5173`). Para generar la versión final en `dist/`:
+
+```
+npm run build
+```
 
 ---
 
 ## ⚠️ Limitaciones conocidas
 
-- El trabajo sin guardar vive en el navegador donde lo hiciste. Guarda el proyecto en un archivo para llevarlo a otro equipo.
+- La app empieza vacía cada vez: guarda tu proyecto en un archivo antes de cerrar (avisa si hay cambios sin guardar).
 - Los **vídeos de referencia** no se incluyen en el archivo del proyecto.
 - Los modelos comprimidos con **Draco** no se pueden importar.
 
