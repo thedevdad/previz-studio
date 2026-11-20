@@ -39,23 +39,22 @@ canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;displa
 #stat{position:absolute;left:8px;bottom:8px;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px;color:var(--mute)}
 #toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:8px;opacity:0;transition:opacity .2s;pointer-events:none}
 label{display:block;font-size:12px;color:var(--mute);margin-bottom:8px}
-input[type=text],input[type=number],textarea{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px}
+input[type=text],input[type=number]{width:100%;box-sizing:border-box;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:6px}
 .row{display:flex;gap:8px}.row>*{flex:1;min-width:0}
-#io,#sg,#op,#cf{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9}
-#io[hidden],#sg[hidden],#op[hidden],#cf[hidden]{display:none}
+#op,#cf{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:9}
+#op[hidden],#cf[hidden]{display:none}
 .card{background:var(--panel);border-radius:12px;padding:16px;width:min(560px,92vw)}
-textarea{height:240px;font:12px ui-monospace,monospace;margin-bottom:10px}
+
 @media (max-width:760px){main{flex-direction:column}aside{width:auto!important;max-height:26vh;border:0!important;border-bottom:1px solid var(--line)!important}#stage{order:-1;min-height:46vh}.cat{grid-template-columns:repeat(3,1fr)}}
 </style>
 </head>
 <body data-mode="plan">
 <header>
-<b>🎬 Previz Studio</b><span class="loc">📍 <select id="locSel" title="Localización"></select> <input type="text" id="locName" style="width:150px" title="Nombre de la localización"> <button id="locNew">＋ Nueva</button><button id="locDup">⧉ Duplicar</button><button id="locDel" class="dng">🗑</button></span><button id="bScript" title="Genera una planta nueva a partir de una escena del guion">📜 Desde guion</button><span class="sp"></span>
+<b>🎬 Previz Studio</b><span class="loc">📍 <select id="locSel" title="Localización"></select> <input type="text" id="locName" style="width:150px" title="Nombre de la localización"> <button id="locNew">＋ Nueva</button><button id="locDup">⧉ Duplicar</button><button id="locDel" class="dng">🗑</button></span><span class="sp"></span>
 <button id="bUndo" title="Ctrl+Z">↶ Deshacer</button>
 <button id="bFit">Encuadrar</button>
 <label class="chk" style="margin:0"><input type="checkbox" id="cSnap" checked> Imán 0,1 m</label>
-<button id="bSave" title="Guardar el proyecto en un archivo (Ctrl+S)">💾 Guardar</button><button id="bOpen" title="Abrir un proyecto guardado">📂 Abrir</button><button id="bIO" title="Ver o pegar el proyecto como texto (avanzado)">📋 Texto</button><input type="file" id="pFile" accept=".json,.txt,application/json,text/plain" hidden>
-<button id="bClear" class="dng">Vaciar</button>
+<button id="bSave" title="Guardar el proyecto en un archivo (Ctrl+S)">💾 Guardar</button><button id="bOpen" title="Abrir un proyecto guardado">📂 Abrir</button><input type="file" id="pFile" accept=".json,application/json" hidden>
 </header>
 <main>
 <aside id="L">
@@ -88,20 +87,10 @@ textarea{height:240px;font:12px ui-monospace,monospace;margin-bottom:10px}
 <div id="stage"><canvas id="cv" tabindex="0" style="outline:none"></canvas><div id="stat">—</div><div id="v3w"><canvas id="gl"></canvas><video id="refV" muted playsinline preload="auto" style="position:absolute;pointer-events:none;display:none;object-fit:contain"></video><div id="hud"></div></div><div id="tl"><button id="tPlay">▶</button><input type="range" id="tSc" min="0" max="1000" value="0"><span id="tTm" style="min-width:96px;text-align:center;font-variant-numeric:tabular-nums">0,0 / 0,0 s</span><select id="spdSel"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option></select><label class="chk" style="margin:0"><input type="checkbox" id="tLoop" checked> Bucle</label><label class="chk" style="margin:0"><input type="checkbox" id="tEase" checked> Suave</label></div><div id="toast"></div></div>
 <aside id="R"><h3>Propiedades</h3><div id="insp"></div></aside>
 </main>
-<div id="io" hidden><div class="card"><h3>Proyecto como texto (avanzado)</h3>
-<p class="hint">El texto contiene todas tus localizaciones. Puedes copiarlo, descargarlo como .txt, o cargar un texto/archivo: «Añadir» lo suma como localización nueva sin tocar las que ya tienes; «Reemplazar todo» sustituye el proyecto entero.</p>
-<textarea id="ioT"></textarea>
-<div class="row"><button id="ioCopy">Copiar</button><button id="ioDown">⬇ Descargar .txt</button><button id="ioOpen">📂 Abrir archivo…</button><input type="file" id="ioFile" accept=".txt,.json,text/plain,application/json" hidden></div>
-<div class="row" style="margin-top:6px"><button id="ioAdd" class="pri">＋ Añadir como localización nueva</button><button id="ioLoad" class="dng">Reemplazar todo</button><button id="ioClose">Cerrar</button></div></div></div>
 <div id="cf" hidden><div class="card"><h3 id="cfH"></h3><p id="cfT"></p><div class="row"><button id="cfOk" class="dng"></button><button id="cfNo">Cancelar</button></div></div></div>
 <div id="op" hidden><div class="card"><h3>Abrir proyecto</h3><p id="opT"></p>
 <div class="row"><button id="opRep" class="pri">Abrir (sustituye lo que tienes ahora)</button></div><div class="row" style="margin-top:6px"><button id="opAdd">＋ Añadir sus localizaciones a este proyecto</button><button id="opNo">Cancelar</button></div>
 <p class="hint">Puedes deshacer con Ctrl+Z.</p></div></div>
-<div id="sg" hidden><div class="card"><h3>Planta desde el guion</h3>
-<p class="hint">Pega una escena (encabezado, descripción y diálogos). Claude propondrá una planta con muros, muebles y personajes, y la añadirá como localización nueva. Es un punto de partida: luego lo ajustas a mano. No toca tus otras localizaciones.</p>
-<textarea id="sgT" placeholder="INT. DORMITORIO DE LUCÍA - NOCHE&#10;Un cuarto pequeño. Una cama junto a la ventana, un escritorio con el portátil encendido…" style="min-height:200px"></textarea>
-<p id="sgS" class="hint" style="min-height:1.2em"></p>
-<div class="row"><button id="sgRun" class="pri">✨ Generar planta</button><button id="sgClose">Cerrar</button></div></div></div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/utils/SkeletonUtils.js"></script>
@@ -213,8 +202,7 @@ S.items.forEach(norm);ensureLoc();
 var dirty=false;function save(){try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}dirty=true;dirtyUI()}
 function dirtyUI(){const b=document.getElementById('bSave');if(b)b.textContent=dirty?'💾 Guardar •':'💾 Guardar'}
 function saved(){dirty=false;dirtyUI()}
-function migrate(j){if(!j||j.v>=2)return;const fx=a=>(a||[]).forEach(o=>{if(o&&o.t==='actor')o.r=(((+o.r||0)+180)%360+360)%360});fx(j.items);Object.values(j.stash||{}).forEach(d=>fx(d&&d.items));j.v=2}
-function ensureLoc(){migrate(S);if(!Array.isArray(S.locs)||!S.locs.length){const id=S.nid++;S.locs=[{id,n:'Localización 1'}];S.loc=id}if(!S.locs.some(l=>l.id===S.loc))S.loc=S.locs[0].id;S.stash=S.stash||{};S.shots=S.shots||[];S.models=S.models||[]}
+function ensureLoc(){if(!Array.isArray(S.locs)||!S.locs.length){const id=S.nid++;S.locs=[{id,n:'Localización 1'}];S.loc=id}if(!S.locs.some(l=>l.id===S.loc))S.loc=S.locs[0].id;S.stash=S.stash||{};S.shots=S.shots||[];S.models=S.models||[]}
 function locStash(){S.stash[S.loc]={items:S.items,walls:S.walls,shots:S.shots||[],cur:S.cur||null,ground:S.ground||0,tod:S.tod||'dia',sun:S.sun==null?220:S.sun}}
 function locLoad(id){const d=S.stash[id]||{items:[],walls:[],shots:[],cur:null,ground:0};delete S.stash[id];S.items=d.items;S.walls=d.walls;S.shots=d.shots;S.cur=d.cur;S.ground=d.ground;S.tod=d.tod||'dia';S.sun=d.sun==null?220:d.sun;S.loc=id;S.items.forEach(norm)}
 function locUI(){const a=$('#locSel');if(!a)return;a.innerHTML=S.locs.map(l=>'<option value="'+l.id+'">'+esc(l.n)+'</option>').join('');a.value=S.loc;const n=$('#locName');if(document.activeElement!==n)n.value=(S.locs.find(l=>l.id===S.loc)||{}).n||'';$('#locDel').disabled=S.locs.length<2}
@@ -388,7 +376,7 @@ drag=null;save();draw()}
 cv.addEventListener('pointerup',up);cv.addEventListener('pointercancel',up);
 cv.addEventListener('wheel',e=>{e.preventDefault();const s=loc(e);zoomAt(s.x,s.y,Math.exp(-e.deltaY*.0015));draw()},{passive:false});
 let e_shift=false;addEventListener('keydown',e=>{e_shift=e.shiftKey});addEventListener('keyup',e=>{e_shift=e.shiftKey});
-addEventListener('keydown',e=>{const t=e.target.tagName,ty=e.target.type;if(t==='TEXTAREA'||(t==='INPUT'&&(ty==='text'||ty==='number')))return;
+addEventListener('keydown',e=>{const t=e.target.tagName,ty=e.target.type;if(t==='INPUT'&&(ty==='text'||ty==='number'))return;
 if(mode==='v3'&&e.key.startsWith('Arrow')&&!e.ctrlKey&&!e.metaKey&&!e.altKey){e.preventDefault();if(G&&isFree())kv[e.key]=1;return}
 if(e.code==='Space'){if(mode==='v3')$('#tPlay').click();else space=true;e.preventDefault()}
 else if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){e.preventDefault();doUndo()}
@@ -808,49 +796,7 @@ $('#cat').addEventListener('click',e=>{const b=e.target.closest('[data-add]');if
 document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>setTool(b.dataset.tool));
 $('#bUndo').onclick=doUndo;$('#bFit').onclick=fit;
 $('#cSnap').onchange=e=>{snapOn=e.target.checked};
-$('#bClear').onclick=()=>{pushU();S.items=[];S.walls=[];S.shots=[];S.cur=null;sel=null;ci=-1;rsel=null;rpi=-1;save();setMode(mode);toast('Localización vaciada · Ctrl+Z para deshacer')};
-$('#bIO').onclick=()=>{$('#ioT').value=JSON.stringify(S);$('#io').hidden=false};
-$('#ioClose').onclick=()=>{$('#io').hidden=true};
-$('#ioCopy').onclick=async()=>{try{await navigator.clipboard.writeText($('#ioT').value);toast('Copiado')}catch(e){$('#ioT').select();toast('Selecciona y copia con Ctrl+C')}};
-$('#ioLoad').onclick=()=>{try{const j=JSON.parse($('#ioT').value);if(!Array.isArray(j.items)||!Array.isArray(j.walls))throw 0;pushU();S=j;S.nid=S.nid||1000;S.items.forEach(norm);ensureLoc();Object.values(S.stash).forEach(d=>d.items.forEach(norm));ci=-1;rsel=null;rpi=-1;locUI();mList();sel=null;$('#io').hidden=true;insp();save();draw();toast('Proyecto reemplazado · Ctrl+Z para deshacer')}catch(e){toast('El texto no es un plano válido')}};
-function ioParts(j){if(Array.isArray(j.locs)&&j.locs.length){return j.locs.map(l=>{const d=l.id===j.loc?j:(j.stash||{})[l.id];return d&&Array.isArray(d.items)?{n:l.n,items:d.items,walls:d.walls||[],shots:d.shots||[],cur:d.cur||null,ground:d.ground||0,tod:d.tod,sun:d.sun}:null}).filter(Boolean)}if(Array.isArray(j.items)&&Array.isArray(j.walls))return[{n:'Importada',items:j.items,walls:j.walls,shots:j.shots||[],cur:j.cur||null,ground:j.ground||0}];return[]}
-$('#ioAdd').onclick=()=>{try{const j=JSON.parse($('#ioT').value);migrate(j);const parts=ioParts(j);if(!parts.length)throw 0;pushU();(j.models||[]).forEach(m=>{if(m&&m.id&&!S.models.some(x=>x.id===m.id))S.models.push(m)});mList();let mx=S.nid||1;(JSON.stringify(j).match(/"id":(\d+)/g)||[]).forEach(m=>{mx=Math.max(mx,+m.slice(5)+1)});S.nid=mx;locStash();let last=null;parts.forEach(d=>{const id=S.nid++;d.items.forEach(norm);S.stash[id]={items:d.items,walls:d.walls,shots:d.shots,cur:d.cur,ground:d.ground,tod:d.tod||'dia',sun:d.sun==null?220:d.sun};S.locs.push({id,n:d.n||'Importada'});last=id});locLoad(last);ci=-1;rsel=null;rpi=-1;playing=false;$('#io').hidden=true;locUI();save();setMode(mode);fit();toast(parts.length+(parts.length>1?' localizaciones añadidas':' localización añadida'))}catch(e){toast('El texto no es un plano válido')}};
-let DL=null;try{window.claude&&claude.use&&claude.use('downloads').then(d=>{DL=d;if(!d)$('#ioDown').hidden=true}).catch(()=>{$('#ioDown').hidden=true})}catch(e){$('#ioDown').hidden=true}
-$('#ioDown').onclick=async()=>{const t=$('#ioT').value;if(!DL){toast('Descarga no disponible aquí: usa Copiar');return}try{await DL.save({filename:'previz_proyecto.txt',data:t});toast('Archivo guardado')}catch(e){if(e&&e.code==='declined')toast('Descarga cancelada');else toast('No se pudo descargar: usa Copiar')}};
-$('#ioOpen').onclick=()=>$('#ioFile').click();
-$('#ioFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{$('#ioT').value=r.result;toast('Archivo leído: elige Añadir o Reemplazar')};r.onerror=()=>toast('No se pudo leer el archivo');r.readAsText(f);e.target.value=''};
 
-/* ---- Planta desde guion (usa a Claude vía la capacidad sample) ---- */
-function sgPrompt(txt){const cat=CAT.filter(c=>c.t!=='glb').map(c=>c.t+' ('+c.n+', '+c.w+'x'+c.h+' m)').join('; ');
-return `Eres un ayudante de previsualización de cine. A partir de la escena de guion, diseña una planta cenital sencilla y verosímil.
-REGLAS DE COORDENADAS: unidades en metros; origen (0,0) en la esquina superior izquierda de la estancia; x crece hacia la derecha e y hacia abajo. Una estancia típica mide entre 3 y 8 m por lado. Rotación r en grados, sentido horario: con r=0 el frente de muebles, objetos y personas mira hacia abajo (+y), con r=90 hacia la izquierda (-x), con r=180 hacia arriba (-y) y con r=270 hacia la derecha (+x). Los vehículos y el perro van a lo largo del eje x: con r=0 su morro mira a la derecha (+x) y con r=90 hacia abajo (+y).
-MUROS: lista de segmentos {x1,y1,x2,y2}. Cierra las estancias con 4 muros y añade muros interiores si la escena lo pide. En escenas exteriores usa pocos o ningún muro.
-PROPS: solo puedes usar estos tipos (campo t): ${cat}. Cada prop: {t,x,y,r,n} donde x,y es el CENTRO. Ajusta w (ancho) y h (fondo) solo si hace falta (calzada, acera, tienda, cebra). Puertas y ventanas se colocan centradas SOBRE la línea del muro: r=0 en un muro horizontal (y constante), r=90 en uno vertical. Los muebles no deben solaparse entre sí ni salirse de la estancia, y deben quedar con el frente hacia el interior.
-PERSONAJES: un prop t="actor" por cada personaje que aparezca, con n=su nombre, rol ("pj" protagonista, "sec" secundario, "ext" extra), sexo ("m" o "f"), pose (stand, walk, run, phone, talk, sit, crouch, cross, up, point, lie) y r. Un perro es t="perro". Ponlos donde esté la acción al inicio de la escena.
-Incluye los objetos que cita la escena y los imprescindibles para que el espacio se entienda, sin llenar de más. Si la escena es en la calle, suelo="ext"; si es interior, suelo="int". Indica también el momento del día: momento="dia", "atardecer" o "noche" según el encabezado o la descripción.
-Responde SOLO con JSON: {"nombre":"INT/EXT. LUGAR - MOMENTO","suelo":"int","momento":"dia","muros":[...],"props":[...]}.
-ESCENA:
-`+txt}
-function sgBuild(j){if(!j||typeof j!=='object')throw new Error('respuesta vacía');const num=(v,a,b,d)=>{v=+v;return Number.isFinite(v)?Math.max(a,Math.min(b,v)):d};
-const walls=(Array.isArray(j.muros)?j.muros:[]).slice(0,80).map(w=>({x1:num(w.x1,-60,60,0),y1:num(w.y1,-60,60,0),x2:num(w.x2,-60,60,0),y2:num(w.y2,-60,60,0)})).filter(w=>Math.hypot(w.x2-w.x1,w.y2-w.y1)>.05);
-const props=(Array.isArray(j.props)?j.props:[]).slice(0,120).filter(a=>a&&byT[a.t]&&a.t!=='glb').map(a=>{const c=byT[a.t];return{t:a.t,n:String(a.n||c.n).slice(0,40),x:num(a.x,-60,60,0),y:num(a.y,-60,60,0),r:((num(a.r,-720,720,0)%360)+360)%360,w:num(a.w,.1,40,c.w),h:num(a.h,.1,40,c.h),role:ROLES.some(q=>q[0]===a.rol)?a.rol:null,pose:POSES[a.pose]?a.pose:null,sx:a.sexo==='f'?'f':'m'}});
-if(!walls.length&&!props.length)throw new Error('no he podido generar nada con esa escena');
-return{n:String(j.nombre||'Escena del guion').slice(0,60),ground:j.suelo==='ext'?1:0,tod:['dia','atardecer','noche'].includes(j.momento)?j.momento:'dia',walls,props}}
-async function sgRun(){const txt=$('#sgT').value.trim();if(txt.length<20){toast('Pega primero una escena');return}
-let sample=null;try{sample=window.claude&&claude.use?await claude.use('sample'):null}catch(e){}
-if(!sample){$('#sgS').textContent='Esta función solo está disponible al abrir la app desde claude.ai.';return}
-const btn=$('#sgRun');btn.disabled=true;$('#sgS').textContent='Claude está diseñando la planta… (puede tardar unos segundos)';
-try{const j=await sample.json(sgPrompt(txt),{modelTier:'default',cache:false}),d=sgBuild(j);
-pushU();locStash();const id=S.nid++;
-const items=d.props.map(a=>{const o={id:S.nid++,t:a.t,n:a.n,x:a.x,y:a.y,w:a.w,h:a.h,r:a.r};if(a.t==='actor'){if(a.role)o.role=a.role;o.sx=a.sx}if(a.pose&&(a.t==='actor'||a.t==='perro'))o.pose=a.pose;return norm(o)});
-const walls=d.walls.map(w=>({id:S.nid++,x1:w.x1,y1:w.y1,x2:w.x2,y2:w.y2,t:.15}));
-S.stash[id]={items,walls,shots:[],cur:null,ground:d.ground,tod:d.tod,sun:220};S.locs.push({id,n:d.n});locLoad(id);ci=-1;rsel=null;rpi=-1;playing=false;
-$('#sg').hidden=true;$('#sgS').textContent='';locUI();save();setMode(mode);fit();toast('Localización «'+d.n+'» creada · Ctrl+Z para deshacer')}
-catch(e){const c=e&&e.code;$('#sgS').textContent=c==='not_granted'?'Has rechazado el permiso. Vuelve a pulsar Generar y acéptalo.':c==='rate_limited'?'Demasiadas peticiones seguidas: espera un momento.':'No se pudo generar: '+((e&&e.message)||'error desconocido')+'. Prueba de nuevo.'}
-finally{btn.disabled=false}}
-$('#bScript').onclick=()=>{$('#sg').hidden=false};
-$('#sgClose').onclick=()=>{$('#sg').hidden=true};
-$('#sgRun').onclick=sgRun;
 
 /* ---- Modelos .glb importados (guardados en IndexedDB de este navegador) ---- */
 const MC={},mHave={},mBusy={};let mDb=null;
@@ -914,18 +860,23 @@ async function projSave(as){toast('Preparando el archivo…');const data=await p
 if(window.showSaveFilePicker){try{if(!FH||as)FH=await showSaveFilePicker({suggestedName:name,types:[{description:'Proyecto Previz',accept:{'application/json':['.json']}}]});
 const w=await FH.createWritable();await w.write(data);await w.close();S.pname=FH.name.replace(/(\.previz)?\.json$/i,'');try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}saved();toast('Guardado en «'+FH.name+'»');return}
 catch(e){if(e&&e.name==='AbortError'){toast('Guardado cancelado');return}FH=null}}
-if(DL){try{await DL.save({filename:name,data});saved();toast('Proyecto guardado: «'+name+'»')}catch(e){toast(e&&e.code==='declined'?'Guardado cancelado':'No se pudo guardar el archivo')}return}
 try{const u=URL.createObjectURL(new Blob([data],{type:'application/json'})),a=document.createElement('a');a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),3000);saved();toast('Descargado «'+name+'»')}catch(e){toast('No se pudo guardar el archivo')}}
-async function projOpen(){if(window.showOpenFilePicker){try{const [h]=await showOpenFilePicker({types:[{description:'Proyecto Previz',accept:{'application/json':['.json'],'text/plain':['.txt']}}]});projRead(await h.getFile(),h);return}catch(e){if(e&&e.name==='AbortError')return}}$('#pFile').click()}
+async function projOpen(){if(window.showOpenFilePicker){try{const [h]=await showOpenFilePicker({types:[{description:'Proyecto Previz',accept:{'application/json':['.json']}}]});projRead(await h.getFile(),h);return}catch(e){if(e&&e.name==='AbortError')return}}$('#pFile').click()}
 async function projRead(f,h){let j;try{j=JSON.parse(await f.text())}catch(e){toast('Ese archivo no es un proyecto de Previz');return}
-const P=j&&j.app==='previz-studio'?j:{S:j,models:{}};if(!P.S||!Array.isArray(P.S.items)||!Array.isArray(P.S.walls)){toast('Ese archivo no es un proyecto de Previz');return}
-pend={P,h,name:f.name.replace(/(\.previz)?\.(json|txt)$/i,'')};const nl=Array.isArray(P.S.locs)&&P.S.locs.length?P.S.locs.length:1,nm=Object.keys(P.models||{}).length;
+const P=j;if(!P||P.app!=='previz-studio'||!P.S||!Array.isArray(P.S.items)||!Array.isArray(P.S.walls)){toast('Ese archivo no es un proyecto de Previz');return}
+pend={P,h,name:f.name.replace(/(\.previz)?\.json$/i,'')};const nl=(P.S.locs||[]).length||1,nm=Object.keys(P.models||{}).length;
 $('#opT').textContent='«'+pend.name+'» tiene '+nl+(nl>1?' localizaciones':' localización')+(nm?' y '+nm+(nm>1?' modelos 3D':' modelo 3D'):'')+'.';$('#op').hidden=false}
+function projReplace(j){pushU();S=j;S.nid=S.nid||1000;S.items.forEach(norm);ensureLoc();Object.values(S.stash).forEach(d=>d.items.forEach(norm));ci=-1;rsel=null;rpi=-1;sel=null;locUI();mList();save();setMode(mode);fit()}
+function projAdd(j){const parts=(j.locs||[]).map(l=>{const d=l.id===j.loc?j:(j.stash||{})[l.id];return d&&Array.isArray(d.items)?{n:l.n,items:d.items,walls:d.walls||[],shots:d.shots||[],cur:d.cur||null,ground:d.ground||0,tod:d.tod,sun:d.sun}:null}).filter(Boolean);
+if(!parts.length){toast('Ese proyecto no tiene localizaciones');return}pushU();(j.models||[]).forEach(m=>{if(m&&m.id&&!S.models.some(x=>x.id===m.id))S.models.push(m)});
+let mx=S.nid||1;(JSON.stringify(j).match(/"id":(\d+)/g)||[]).forEach(m=>{mx=Math.max(mx,+m.slice(5)+1)});S.nid=mx;locStash();let last=null;
+parts.forEach(d=>{const id=S.nid++;d.items.forEach(norm);S.stash[id]={items:d.items,walls:d.walls,shots:d.shots,cur:d.cur,ground:d.ground,tod:d.tod||'dia',sun:d.sun==null?220:d.sun};S.locs.push({id,n:d.n||'Importada'});last=id});
+locLoad(last);ci=-1;rsel=null;rpi=-1;playing=false;locUI();mList();save();setMode(mode);fit();toast(parts.length+(parts.length>1?' localizaciones añadidas':' localización añadida'))}
 async function projModels(P){for(const m of P.S.models||[]){const b=P.models&&P.models[m.id];if(!b)continue;try{const u=b64u8(b);await idbPut(m.id,u.buffer);mHave[m.id]=true;delete MC[m.id]}catch(e){}}}
 $('#bSave').onclick=()=>projSave(false);$('#bOpen').onclick=projOpen;
 $('#pFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)projRead(f,null)};
-$('#opRep').onclick=async()=>{const p=pend;pend=null;$('#op').hidden=true;await projModels(p.P);$('#ioT').value=JSON.stringify(p.P.S);$('#ioLoad').click();S.pname=p.name;FH=p.h;save();saved();mList();toast('Abierto «'+p.name+'»')};
-$('#opAdd').onclick=async()=>{const p=pend;pend=null;$('#op').hidden=true;await projModels(p.P);$('#ioT').value=JSON.stringify(p.P.S);$('#ioAdd').click();mList()};
+$('#opRep').onclick=async()=>{const p=pend;pend=null;$('#op').hidden=true;await projModels(p.P);projReplace(p.P.S);S.pname=p.name;FH=p.h;save();saved();mList();toast('Abierto «'+p.name+'»')};
+$('#opAdd').onclick=async()=>{const p=pend;pend=null;$('#op').hidden=true;await projModels(p.P);projAdd(p.P.S)};
 $('#opNo').onclick=()=>{pend=null;$('#op').hidden=true};
 addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='s'){e.preventDefault();projSave(e.shiftKey)}},true);
 

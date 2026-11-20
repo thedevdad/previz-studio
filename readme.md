@@ -105,7 +105,6 @@ dibujas el set   colocas planos     ves la secuencia
 - El trabajo sin guardar vive en el navegador donde lo hiciste. Guarda el proyecto en un archivo para llevarlo a otro equipo.
 - Los **vídeos de referencia** no se incluyen en el archivo del proyecto.
 - Los modelos comprimidos con **Draco** no se pueden importar.
-- **📜 Desde guion** (generar una planta a partir de una escena) solo funciona en la versión de claude.ai.
 
 ---
 
