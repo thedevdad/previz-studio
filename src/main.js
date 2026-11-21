@@ -22,6 +22,7 @@ try{localStorage.removeItem('previz_plan_v1')}catch(e){}
 S.items.forEach(norm);ensureLoc();
 var dirty=false;function save(){dirty=true;dirtyUI()}
 addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue=''}});
+window.__TAURI__?.window.getCurrentWindow().onCloseRequested(e=>{if(dirty&&!confirm('Hay cambios sin guardar. ¿Cerrar Previz Studio igualmente?'))e.preventDefault()});
 function dirtyUI(){const b=document.getElementById('bSave');if(b)b.textContent=dirty?'💾 Guardar •':'💾 Guardar'}
 function saved(){dirty=false;dirtyUI()}
 function ensureLoc(){if(!Array.isArray(S.locs)||!S.locs.length){const id=S.nid++;S.locs=[{id,n:'Localización 1'}];S.loc=id}if(!S.locs.some(l=>l.id===S.loc))S.loc=S.locs[0].id;S.stash=S.stash||{};S.shots=S.shots||[];S.models=S.models||[]}

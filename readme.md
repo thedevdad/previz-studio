@@ -3,13 +3,14 @@
 # 🎬 Previz Studio
 
 **Planifica tus planos antes de rodar.**
-Dibuja la planta del set, coloca cámaras y personajes, y mira la secuencia en 3D, todo desde el navegador.
+Dibuja la planta del set, coloca cámaras y personajes, y mira la secuencia en 3D, en el navegador o como app de Windows.
 
 [![Abrir la app](https://img.shields.io/badge/▶_Abrir_la_app-thedevdad.github.io-e8590c?style=for-the-badge)](https://thedevdad.github.io/previz-studio/)
+[![Descargar para Windows](https://img.shields.io/badge/⬇_Descargar-Windows-1c1b19?style=for-the-badge)](https://github.com/thedevdad/previz-studio/releases/latest)
 
-![HTML](https://img.shields.io/badge/un_solo_archivo-HTML-f4a261?style=flat-square)
+![Vite](https://img.shields.io/badge/proyecto-Vite-f4a261?style=flat-square)
 ![Three.js](https://img.shields.io/badge/3D-Three.js_r187-1b1d21?style=flat-square)
-![Sin instalación](https://img.shields.io/badge/sin_instalación-navegador-2f7d4f?style=flat-square)
+![Windows](https://img.shields.io/badge/escritorio-Windows_(Tauri)-2f7d4f?style=flat-square)
 ![Idioma](https://img.shields.io/badge/interfaz-español-d62828?style=flat-square)
 
 </div>
@@ -97,6 +98,7 @@ dibujas el set   colocas planos     ves la secuencia
 - Proyecto **[Vite](https://vite.dev)** con el código separado en módulos dentro de `src/`.
 - **[Three.js](https://threejs.org)** para el 3D, con `GLTFLoader` para los modelos importados.
 - Los proyectos se guardan en **archivos tuyos** (`.previz.json`); la app empieza siempre vacía.
+- App de escritorio para Windows con **[Tauri](https://tauri.app)**: GitHub crea el instalador cada vez que se publica una versión.
 - Publicado con **GitHub Pages**. La versión anterior, de un solo archivo HTML, está en la etiqueta `v1-html`.
 
 ### Desarrollo
