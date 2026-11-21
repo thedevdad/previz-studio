@@ -8,7 +8,7 @@ Dibuja la planta del set, coloca cámaras y personajes, y mira la secuencia en 3
 [![Abrir la app](https://img.shields.io/badge/▶_Abrir_la_app-thedevdad.github.io-e8590c?style=for-the-badge)](https://thedevdad.github.io/previz-studio/)
 
 ![HTML](https://img.shields.io/badge/un_solo_archivo-HTML-f4a261?style=flat-square)
-![Three.js](https://img.shields.io/badge/3D-Three.js_r128-1b1d21?style=flat-square)
+![Three.js](https://img.shields.io/badge/3D-Three.js_r187-1b1d21?style=flat-square)
 ![Sin instalación](https://img.shields.io/badge/sin_instalación-navegador-2f7d4f?style=flat-square)
 ![Idioma](https://img.shields.io/badge/interfaz-español-d62828?style=flat-square)
 
@@ -18,7 +18,7 @@ Dibuja la planta del set, coloca cámaras y personajes, y mira la secuencia en 3
 
 ## ✨ ¿Qué es?
 
-**Previz Studio** es una herramienta de previsualización (*previz*) pensada para cortometrajes y guiones. En lugar de imaginar un plano, lo montas: paredes, muebles, coches, personas, la cámara y su recorrido. Después lo reproduces en 3D para ver exactamente qué va a ver el objetivo.
+**Previz Studio** es una herramienta de previsualización (*previz*) pensada para planificar movimientos de cámara transmitir una idea, crear storyboard o más, en cualquier obra audiovisual. En lugar de imaginar un plano, lo montas: paredes, muebles, coches, personas, la cámara y su recorrido. Después lo reproduces en 3D para ver exactamente qué va a ver el objetivo.
 
 Sirve para preparar el rodaje, comunicar ideas al equipo y montar un storyboard a partir de los mismos planos.
 
@@ -51,11 +51,11 @@ dibujas el set   colocas planos     ves la secuencia
 - **Recorridos de personajes** (andar, correr, hablar por teléfono) con velocidad y retardo.
 
 ### 🎬 Vista 3D
-- **Tres estilos visuales**:
+- **Cuatro estilos visuales**:
 
-  | 🎞️ Cinematográfico | 🖍️ Cel-shading | ✏️ Boceto a mano |
-  |:---:|:---:|:---:|
-  | luz realista y sombras | aspecto de cómic | trazo de lápiz |
+  | 🎞️ Cinematográfico | 🖍️ Cel-shading | ✏️ Boceto a mano | 📷 Realista |
+  |:---:|:---:|:---:|:---:|
+  | luz y sombras de cine | aspecto de cómic | trazo de lápiz | cielo real, sombras de contacto y desenfoque |
 
 - **Hora del día**: día, atardecer o noche, con dirección del sol. La luz entra por las ventanas.
 - **Vista libre** para recorrer el set y **arrastrar los puntos** de cámara y recorridos en 3D, también en altura.
@@ -126,7 +126,6 @@ npm run build
 
 ## 🗺️ Próximamente
 
-- [ ] Estilo **Realista** (iluminación de cine y desenfoque de profundidad)
 - [ ] Exportar el **storyboard** como imágenes
 - [ ] Animaciones de escena: puertas que se abren, cámara en mano
 - [ ] Trazados curvos para muros, calles y recorridos
