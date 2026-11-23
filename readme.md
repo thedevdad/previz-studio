@@ -43,8 +43,8 @@ dibujas el set   colocas planos     ves la secuencia
 - **Tiradores** de esquina, laterales y de giro, y redondeo de esquinas.
 - **Capas** (Suelo, Muebles y Techo) para ocultar o bloquear. Lo más alto siempre se dibuja encima.
 - **Personas** con rol (personaje, secundario o extra), sexo, poses predefinidas y ajuste fino, y aspecto (pelo, piel, ropa). También hay **perro**.
-- **Personajes animados**: importa un personaje `.glb` con animaciones (por ejemplo de [ActionForge](https://actionforge.app) o Mixamo) y úsalo en lugar del muñeco. Anda, corre o se queda quieto según su recorrido.
-- **Mis modelos 3D**: importa tus propios `.glb` o carpetas `.gltf` con texturas, de [Poly Haven](https://polyhaven.com), [Quaternius](https://quaternius.com) o [Kenney](https://kenney.nl).
+- **Personajes animados**: importa un personaje `.glb` o `.fbx` con animaciones (por ejemplo de [ActionForge](https://actionforge.app) o Mixamo) y úsalo en lugar del muñeco. Anda, corre o se queda quieto según su recorrido.
+- **Mis modelos 3D**: importa tus propios modelos en `.glb`, `.gltf`, `.fbx`, `.obj`, `.dae`, `.3ds`, `.stl` o `.usdz`, sueltos o con su carpeta de texturas: de [Poly Haven](https://polyhaven.com), [CGTrader](https://www.cgtrader.com), [Quaternius](https://quaternius.com) o [Kenney](https://kenney.nl).
 
 ### 🎥 Cámara
 - Varios **planos por localización**, también fijos, ideales para storyboard.
@@ -96,7 +96,7 @@ dibujas el set   colocas planos     ves la secuencia
 ## 🛠️ Cómo está hecho
 
 - Proyecto **[Vite](https://vite.dev)** con el código separado en módulos dentro de `src/`.
-- **[Three.js](https://threejs.org)** para el 3D, con `GLTFLoader` para los modelos importados.
+- **[Three.js](https://threejs.org)** para el 3D, con sus lectores de modelos; los formatos que no son glTF se convierten a `.glb` al importarlos.
 - Los proyectos se guardan en **archivos tuyos** (`.previz.json`); la app empieza siempre vacía.
 - App de escritorio para Windows con **[Tauri](https://tauri.app)**: GitHub crea el instalador cada vez que se publica una versión.
 - Publicado con **GitHub Pages**. La versión anterior, de un solo archivo HTML, está en la etiqueta `v1-html`.
@@ -122,7 +122,7 @@ npm run build
 
 - La app empieza vacía cada vez: guarda tu proyecto en un archivo antes de cerrar (avisa si hay cambios sin guardar).
 - Los **vídeos de referencia** no se incluyen en el archivo del proyecto.
-- Los modelos comprimidos con **Draco** no se pueden importar.
+- Los modelos comprimidos con **Draco** no se pueden importar, ni los archivos nativos de 3ds Max (`.max`) o Blender (`.blend`): expórtalos antes a FBX o glTF.
 
 ---
 
