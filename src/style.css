@@ -39,3 +39,17 @@ input[type=text],input[type=number]{width:100%;box-sizing:border-box;font:inheri
 .card{background:var(--panel);border-radius:12px;padding:16px;width:min(560px,92vw)}
 
 @media (max-width:760px){#Lgrip{display:none}main{flex-direction:column}aside{width:auto!important;max-height:26vh;border:0!important;border-bottom:1px solid var(--line)!important}#stage{order:-1;min-height:46vh}.cat{grid-template-columns:repeat(3,1fr)}}
+
+/* Editor de pose */
+#poseEd{position:fixed;inset:0;z-index:1000;display:flex;background:var(--bg)}
+#poseEd .pe-view{flex:1;position:relative;min-width:0}
+#poseEd canvas{width:100%;height:100%;display:block;touch-action:none}
+#poseEd .pe-hud{position:absolute;left:12px;right:12px;bottom:10px;color:#cfd3da;font-size:12px;text-shadow:0 1px 2px #000;pointer-events:none}
+#poseEd .pe-side{width:300px;border-left:1px solid var(--line);display:flex;flex-direction:column}
+#poseEd .pe-side input[type=range],#poseEd .pe-side select,#poseEd #peQ{width:100%;box-sizing:border-box}
+#poseEd .pe-chk{display:flex;gap:6px;align-items:center}
+#poseEd #peRA{margin-top:6px}
+#poseEd #peQ{margin-top:10px;font:inherit;color:var(--ink);background:var(--btn);border:1px solid var(--line);border-radius:8px;padding:5px 8px}
+#poseEd #peList{flex:1;min-height:80px;overflow-y:auto;margin-top:6px;display:flex;flex-direction:column;gap:2px}
+#poseEd #peList button{text-align:left;padding:3px 8px;font-size:12px}
+#poseEd .pe-end{margin-top:10px}#poseEd .pe-end button{flex:1}

@@ -2,6 +2,7 @@
 import './style.css';
 import { THREE } from './lib/three.js';
 import { OTHER, toGlb } from './lib/import3d.js';
+import { openPose } from './pose.js';
 import { CATS, CAT, byT, ZD, LAMP, RND, FLAT, RECT } from './data/catalog.js';
 import { D2R, ROLEC, ROLES, POSES, PLIST, DPOSES, DLIST, SL, HAIRS, HAIRC, SKIN, poseOf } from './data/people.js';
 const $=s=>document.querySelector(s);
@@ -153,6 +154,7 @@ if(id==='pN')o.n=e.target.value;else if(id==='pW'&&v>0)o.w=v;else if(id==='pH'&&
 save();draw()});
 $('#insp').addEventListener('click',e=>{const id=e.target.id;if(mode==='cam'){if(id==='cX')camDelPt();if(id==='rX')delRoute();return}if(id==='pX')del();if(id==='pD')dup();
 if(id==='pMr'){const o=selObj(),m=o&&S.models.find(x=>x.id===o.m);if(m&&m.w>0){pushU();o.h=r3(o.w*m.h/m.w);o.z=r3(o.w*m.z/m.w);sync();save();draw()}}
+if(id==='aPose'){const o=selObj();if(o&&o.md){if(!MC[o.md]){mLoad(o.md);toast('Cargando el personaje… vuelve a pulsar en un momento')}else if(!openPose(o,{build:anim3D,pushU,onDone:()=>{save();draw();if(mode==='v3'&&G)re3(o);insp()}}))toast('Este modelo no tiene esqueleto')}}
 if(id==='pMc'){const o=selObj();if(o&&o.mc){pushU();delete o.mc;mcUI(o);save();draw()}}
 if(id==='pHg'||id==='pSw'){const o=selObj();if(!o)return;pushU();if(id==='pHg')o.hg=-o.hg;else o.sw=-o.sw;sync();save();draw()}});
 function del(){const o=selObj();if(!o)return;pushU();if(sel.k==='i')S.items=S.items.filter(i=>i!==o);else S.walls=S.walls.filter(i=>i!==o);sel=null;insp();save();draw()}
@@ -694,7 +696,7 @@ async function idbGet(k){const db=await idb();return new Promise((res,rej)=>{con
 function glbParse(buf){return new Promise((res,rej)=>{new THREE.GLTFLoader().parse(buf,'',res,rej)})}
 function mStore(id,gl){gl.scene.updateMatrixWorld(true);let rb=null,sk=false;gl.scene.traverse(n=>{if(n.isSkinnedMesh)sk=true;if(!rb&&n.isBone&&!(n.parent&&n.parent.isBone))rb=n});
 const clips=sk?(gl.animations||[]).map(c=>{c=c.clone();if(rb)c.tracks.forEach(tr=>{if(tr.name===rb.name+'.position'){for(let i=0;i<tr.values.length;i+=3){tr.values[i]=tr.values[0];tr.values[i+2]=tr.values[2]}}});return c}):[];
-MC[id]={scene:gl.scene,box:new THREE.Box3().setFromObject(gl.scene),clips};mHave[id]=true}
+MC[id]={scene:gl.scene,box:new THREE.Box3().setFromObject(gl.scene),clips,rig:sk};mHave[id]=true}
 // Piezas de un modelo: cada material de cada malla, en el mismo orden que recorre paint()
 function mParts(scene){const p=[];scene.traverse(n=>{if(!n.isMesh)return;const ms=[].concat(n.material);ms.forEach((m,j)=>p.push({n:(n.name||'Pieza')+(ms.length>1?' · '+(m&&m.name&&m.name!=='__DEFAULT'?m.name:j+1):''),c:m&&m.color?'#'+m.color.clone().convertLinearToSRGB().getHexString():'#cccccc'}))});return p}
 // Materiales del modelo en la escena 3D, con los colores que el usuario haya elegido para cada pieza (o.mc)
@@ -704,21 +706,26 @@ n.material=Array.isArray(n.material)?out:out[0]})}
 function mcUI(o){const box=$('#mcBox');if(!box)return;const M=MC[o.m];if(!M){if(mHave[o.m]===false){box.innerHTML='';return}box.innerHTML='<p class="hint">Cargando piezas…</p>';mLoad(o.m).then(()=>setTimeout(()=>{if(selObj()===o)mcUI(o)},MC[o.m]?0:400));return}
 const ps=mParts(M.scene);box.innerHTML='<div style="max-height:260px;overflow:auto">'+ps.map((p,i)=>'<label>'+esc(p.n)+'<input type="color" id="mc_'+i+'" value="'+((o.mc&&o.mc[i])||p.c)+'" style="width:100%;height:28px;padding:0"></label>').join('')+'</div><button id="pMc">↺ Colores originales</button>'}
 const ANIMK=[['stand','Quieto',/idle|stand|breath|rest/i],['walk','Andar',/walk/i],['run','Correr',/run|jog|sprint/i],['sit','Sentado',/sit/i],['phone','Teléfono',/phone|call/i]];
-function mdUI(o){const sel=$('#aMd'),box=$('#aMap');if(!sel)return;const av=S.models.filter(m=>m.clips&&m.clips.length);
+function mdUI(o){const sel=$('#aMd'),box=$('#aMap');if(!sel)return;const av=S.models.filter(isChar);
 sel.innerHTML='<option value="">Muñeco articulado</option>'+av.map(m=>'<option value="'+m.id+'">'+esc(m.n)+'</option>').join('');sel.value=o.md||'';
 const md=o.md&&S.models.find(m=>m.id===o.md);if(!md){box.innerHTML='<p class="hint">'+(av.length?'Elige un personaje animado importado.':'Importa en «Mis modelos 3D» un personaje .glb con animaciones (por ejemplo de ActionForge) y aparecerá aquí.')+'</p>';return}
-const mp=md.map||{};box.innerHTML='<p class="hint">Animación que usa en cada situación (Andar y Correr, también al seguir un recorrido):</p>'+ANIMK.map(k=>'<label>'+k[1]+'<select id="aMp_'+k[0]+'" style="width:100%"><option value="">—</option>'+md.clips.map(c=>'<option'+(mp[k[0]]===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>').join('')}
-function anim3D(o){const M=MC[o.md],md=S.models.find(m=>m.id===o.md);if(!M||!md||!M.clips.length)return null;
+const mp=md.map||{},nb=o.bp?Object.keys(o.bp).length:0;box.innerHTML=(md.clips&&md.clips.length?'<p class="hint">Animación que usa en cada situación (Andar y Correr, también al seguir un recorrido):</p>'+ANIMK.map(k=>'<label>'+k[1]+'<select id="aMp_'+k[0]+'" style="width:100%"><option value="">—</option>'+md.clips.map(c=>'<option'+(mp[k[0]]===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>').join(''):'<p class="hint">Este personaje no trae animaciones: dale la postura con el editor de pose.</p>')+'<button id="aPose" style="width:100%">🦴 Editar pose…</button>'+(nb||o.pt!=null?'<p class="hint">'+(nb?'Pose retocada en '+nb+' articulación'+(nb>1?'es':''):'')+(nb&&o.pt!=null?' · ':'')+(o.pt!=null?'quieto en el segundo '+String(o.pt).replace('.',','):'')+'.</p>':'')}
+function anim3D(o){const M=MC[o.md],md=S.models.find(m=>m.id===o.md);if(!M||!md||!(M.clips.length||M.rig))return null;
 const c=THREE.SkeletonUtils.clone(M.scene),b=M.box,k=(o.z||1.7)/Math.max(.1,b.max.y-b.min.y),root=new THREE.Group();c.scale.setScalar(k);c.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);root.add(c);
 paint(c,o);c.traverse(n=>{if(n.isMesh)n.frustumCulled=false});
 const mixer=new THREE.AnimationMixer(c),byN=Object.fromEntries(M.clips.map(x=>[x.name,x])),sz=(o.z||1.7)/1.7;let cur=null;
+// Huesos: postura de reposo, postura de la animación (baseQ) y retoques del editor de pose (o.bp)
+const bones=[];c.traverse(n=>{if(n.isBone)bones.push(n)});const rest=new Map(bones.map(b=>[b,b.quaternion.clone()])),baseQ=new Map(bones.map(b=>[b,new THREE.Quaternion()])),byB=new Map(bones.map(b=>[b.name,b])),tq=new THREE.Quaternion();
 const pick=key=>{const mp=md.map||{},ch=key==='run'?['run','walk','stand']:key==='walk'?['walk','stand']:key==='sit'?['sit','stand']:key==='phone'?['phone','stand']:['stand'];for(const q of ch)if(mp[q]&&byN[mp[q]])return byN[mp[q]];return null};
-const setS=st=>{const clip=pick(st.k);if(!clip){if(cur){cur.stop();cur=null}mixer.update(0);return}const act=mixer.clipAction(clip);if(act!==cur){if(cur)cur.stop();act.play();cur=act}
-const sec=st.d!=null?st.d/((st.k==='run'?3.5:1.4)*sz):(st.t||0);act.time=clip.duration>0?sec%clip.duration:0;mixer.update(0)};
-root.userData={root,setS};return root}
+const setS=st=>{bones.forEach(b=>b.quaternion.copy(rest.get(b)));const clip=pick(st.k);
+if(!clip){if(cur){cur.stop();cur=null}}else{const act=mixer.clipAction(clip);if(act!==cur){if(cur)cur.stop();act.play();cur=act}
+const sec=st.d!=null?st.d/((st.k==='run'?3.5:1.4)*sz):o.pt!=null?o.pt:(st.t||0);act.time=clip.duration>0?sec%clip.duration:0}
+mixer.update(0);bones.forEach(b=>baseQ.get(b).copy(b.quaternion));if(o.bp)for(const n in o.bp){const b=byB.get(n);if(b)b.quaternion.multiply(tq.fromArray(o.bp[n]))}};
+root.userData={root,setS,baseQ,clipFor:pick};return root}
 function mRebuild(){if(mode!=='v3'||!G)return;clearTimeout(mRebuild.t);mRebuild.t=setTimeout(()=>{const o0=Object.assign({},G.orb);build3D();Object.assign(G.orb,o0);prep3D()},60)}
 async function mLoad(id){if(!id||MC[id]||mBusy[id])return;mBusy[id]=1;try{const buf=await idbGet(id);if(!buf){mHave[id]=false;return}mStore(id,await glbParse(buf));mRebuild()}catch(e){console.error(e);mHave[id]=false}finally{delete mBusy[id]}}
-function mList(){const el=$('#mList');if(!el)return;el.innerHTML=S.models.map(m=>'<div class="mrow"><button data-m="'+m.id+'" title="'+esc(m.n)+(m.clips&&m.clips.length?' · personaje animado ('+m.clips.length+' animaciones)':' · '+m.w+'×'+m.h+'×'+m.z+' m')+'">'+(m.clips&&m.clips.length?'🧍 ':'📦 ')+esc(m.n)+(mHave[m.id]===false?' ⚠️':'')+'</button><button data-mdel="'+m.id+'" class="dng" title="Eliminar este modelo">🗑</button></div>').join('')}
+function mList(){const el=$('#mList');if(!el)return;el.innerHTML=S.models.map(m=>'<div class="mrow"><button data-m="'+m.id+'" title="'+esc(m.n)+(m.clips&&m.clips.length?' · personaje animado ('+m.clips.length+' animaciones)':m.rig?' · personaje con esqueleto':' · '+m.w+'×'+m.h+'×'+m.z+' m')+'">'+(isChar(m)?'🧍 ':'📦 ')+esc(m.n)+(mHave[m.id]===false?' ⚠️':'')+'</button><button data-mdel="'+m.id+'" class="dng" title="Eliminar este modelo">🗑</button></div>').join('')}
+const isChar=m=>!!(m&&(m.clips&&m.clips.length||m.rig));
 const usesM=(o,id)=>(o.t==='glb'&&o.m===id)||(o.t==='actor'&&o.md===id);
 function mUses(id){let n=S.items.filter(o=>usesM(o,id)).length;Object.values(S.stash||{}).forEach(d=>{n+=(d.items||[]).filter(o=>usesM(o,id)).length});return n}
 function mPurge(ids){if(!ids.size)return;S.models=(S.models||[]).filter(m=>!ids.has(m.id));const keep=o=>!(o.t==='glb'&&ids.has(o.m)),unlink=a=>a.forEach(o=>{if(o.t==='actor'&&ids.has(o.md))delete o.md});S.items=S.items.filter(keep);unlink(S.items);Object.values(S.stash||{}).forEach(d=>{d.items=(d.items||[]).filter(keep);unlink(d.items)})}
@@ -748,7 +755,7 @@ async function mAdd(name,buf){let gl;try{gl=await glbParse(buf)}catch(e){toast('
 const old=S.models.find(m=>m.n===name),id=old?old.id:'M'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 try{await idbPut(id,buf)}catch(e){toast('No hay espacio para guardar «'+name+'» en este navegador');return false}
 mStore(id,gl);const sz=MC[id].box.getSize(new THREE.Vector3()),k=Math.max(sz.x,sz.y,sz.z)>40?.01:1,clips=MC[id].clips.map(c=>c.name);
-if(!old){pushU();const e={id,n:name,w:r3(Math.max(.05,sz.x*k)),h:r3(Math.max(.05,sz.z*k)),z:r3(Math.max(.05,sz.y*k))};if(clips.length){e.clips=clips;e.map={};ANIMK.forEach(a=>{const c=clips.find(n=>a[2].test(n));if(c)e.map[a[0]]=c});
+if(!old){pushU();const e={id,n:name,w:r3(Math.max(.05,sz.x*k)),h:r3(Math.max(.05,sz.z*k)),z:r3(Math.max(.05,sz.y*k))};if(!clips.length&&MC[id].rig)e.rig=true;if(clips.length){e.clips=clips;e.map={};ANIMK.forEach(a=>{const c=clips.find(n=>a[2].test(n));if(c)e.map[a[0]]=c});
 // Si los nombres no dicen qué animación es (p. ej. «mixamo.com»), usa la más larga
 if(!Object.keys(e.map).length){const best=MC[id].clips.reduce((x,c)=>c.duration>x.duration?c:x);e.map[(ANIMK.find(a=>a[2].test(name))||ANIMK[0])[0]]=best.name}}S.models.push(e)}return true}
 async function mImport(files){let n=0;
@@ -758,7 +765,7 @@ let buf,miss=[];try{if(OTHER.test(f.name))({buf,miss}=await toGlb(f,files));else
 if(await mAdd(f.name.replace(/\.[^.]+$/,''),buf)){n++;if(miss.length)toast('«'+f.name+'» importado sin: '+miss.slice(0,4).join(', ')+(miss.length>4?'…':'')+'. Importa su carpeta para incluir las texturas.')}}
 if(n){save();mList();insp();mRebuild();toast(n===1?'Modelo importado: púlsalo en la lista para añadirlo':n+' modelos importados')}}
 function addModel(id){const m=S.models.find(x=>x.id===id);if(!m)return;pushU();const j=(S.items.length%5)*.2,p=s2w(cv.clientWidth/2,cv.clientHeight/2);
-const o=m.clips&&m.clips.length?norm({id:S.nid++,t:'actor',md:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:byT.actor.w,h:byT.actor.h,r:0}):norm({id:S.nid++,t:'glb',m:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:m.w,h:m.h,z:m.z,r:0});S.items.push(o);sel={k:'i',id:o.id};setTool('select');insp();save();draw();if(!MC[id])mLoad(id)}
+const o=isChar(m)?norm({id:S.nid++,t:'actor',md:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:byT.actor.w,h:byT.actor.h,r:0}):norm({id:S.nid++,t:'glb',m:id,n:m.n,x:sv(p.x+j),y:sv(p.y+j),w:m.w,h:m.h,z:m.z,r:0});S.items.push(o);sel={k:'i',id:o.id};setTool('select');insp();save();draw();if(!MC[id])mLoad(id)}
 $('#mImp').onclick=()=>$('#mFile').click();$('#mDir').onclick=()=>$('#mFold').click();
 $('#mFold').onchange=e=>{const fs=[...e.target.files];e.target.value='';mImport(fs)};
 $('#mFile').onchange=e=>{const fs=[...e.target.files];e.target.value='';mImport(fs)};
