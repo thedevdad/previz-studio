@@ -2,7 +2,7 @@
 import './style.css';
 import { THREE } from './lib/three.js';
 import { OTHER, toGlb } from './lib/import3d.js';
-import { openPose } from './pose.js';
+import { openPose, kfPose } from './pose.js';
 import { CATS, CAT, byT, ZD, LAMP, RND, FLAT, RECT } from './data/catalog.js';
 import { D2R, ROLEC, ROLES, POSES, PLIST, DPOSES, DLIST, SL, HAIRS, HAIRC, SKIN, poseOf } from './data/people.js';
 const $=s=>document.querySelector(s);
@@ -154,7 +154,7 @@ if(id==='pN')o.n=e.target.value;else if(id==='pW'&&v>0)o.w=v;else if(id==='pH'&&
 save();draw()});
 $('#insp').addEventListener('click',e=>{const id=e.target.id;if(mode==='cam'){if(id==='cX')camDelPt();if(id==='rX')delRoute();return}if(id==='pX')del();if(id==='pD')dup();
 if(id==='pMr'){const o=selObj(),m=o&&S.models.find(x=>x.id===o.m);if(m&&m.w>0){pushU();o.h=r3(o.w*m.h/m.w);o.z=r3(o.w*m.z/m.w);sync();save();draw()}}
-if(id==='aPose'){const o=selObj();if(o&&o.md){if(!MC[o.md]){mLoad(o.md);toast('Cargando el personaje… vuelve a pulsar en un momento')}else if(!openPose(o,{build:anim3D,pushU,onDone:()=>{save();draw();if(mode==='v3'&&G)re3(o);insp()}}))toast('Este modelo no tiene esqueleto')}}
+if(id==='aPose'){const o=selObj();if(o&&o.md){if(!MC[o.md]){mLoad(o.md);toast('Cargando el personaje… vuelve a pulsar en un momento')}else if(!openPose(o,{build:anim3D,pushU,t0:tm,dur:total()||5,onDone:()=>{save();draw();if(mode==='v3'&&G)re3(o);insp()}}))toast('Este modelo no tiene esqueleto')}}
 if(id==='pMc'){const o=selObj();if(o&&o.mc){pushU();delete o.mc;mcUI(o);save();draw()}}
 if(id==='pHg'||id==='pSw'){const o=selObj();if(!o)return;pushU();if(id==='pHg')o.hg=-o.hg;else o.sw=-o.sw;sync();save();draw()}});
 function del(){const o=selObj();if(!o)return;pushU();if(sel.k==='i')S.items=S.items.filter(i=>i!==o);else S.walls=S.walls.filter(i=>i!==o);sel=null;insp();save();draw()}
@@ -438,6 +438,8 @@ else{const A=25;P.fl=A*sn;P.br=A*sn;P.fr=-A*sn;P.bl=-A*sn;P.by=.98;P.hu=5}
 P.tail=20+15*Math.sin(ph*2);return P}
 function placeAct(a,x,y,hd,P,st){a.grp.position.set(x,a.o.e,y);if(hd)a.grp.rotation.y=a.o.t==='perro'?Math.atan2(-hd.y,hd.x):Math.atan2(hd.x,hd.y);if(a.u.setS){a.u.setS(st||{k:a.o.pose||'stand',t:tm});return}a.u.setP(P);groundAct(a)}
 function resetActors(){if(!G||!G.act)return;G.act.forEach(a=>{a.grp.rotation.y=-a.o.r*D2R;placeAct(a,a.o.x,a.o.y,null,statP(a.o))})}
+// Personajes con fotogramas clave que no siguen un recorrido: su pose cambia con el tiempo del plano
+function kfActors(){if(!G||!G.act)return;const sh=cur();G.act.forEach(a=>{const o=a.o;if(!o.kf||!a.u.setS)return;const m=sh&&sh.mv&&sh.mv.find(x=>x.id===o.id);if(m&&m.pts.length)return;a.u.setS({k:o.pose||'stand',t:tm})})}
 function animActors(t){const sh=cur();if(!G||!G.act||!sh||!sh.mv)return;
 G.act.forEach(a=>{const o=a.o,m=sh.mv.find(x=>x.id===o.id);if(!m||!m.pts.length)return;
 const P=[{x:o.x,y:o.y}].concat(m.pts),seg=[];let L=0;for(let i=1;i<P.length;i++){const l=Math.hypot(P[i].x-P[i-1].x,P[i].y-P[i-1].y);seg.push(l);L+=l}
@@ -605,7 +607,7 @@ g.scene.overrideMaterial=null;r.setRenderTarget(g.rt);r.render(g.scene,cam);
 if(style===1||style===2){const hv=g.helpers.visible,gv=g.gz.visible;g.helpers.visible=false;g.gz.visible=false;g.scene.overrideMaterial=g.nm;r.setRenderTarget(g.rtN);r.render(g.scene,cam);g.scene.overrideMaterial=null;g.helpers.visible=hv;g.gz.visible=gv}
 r.setRenderTarget(null);r.render(g.ps,g.pc)}
 function frame(){const g=G,s=cur(),tot=total(),has=!!(s&&s.pts.length),free=isFree();layoutGL(free);if(!g.cw)return;
-animActors(tm);const ar=g.cw/g.ch;let cam=g.sc;
+animActors(tm);kfActors();const ar=g.cw/g.ch;let cam=g.sc;
 if(has){const ev=evalCam(s,tm);g.sc.position.copy(ev.pos);g.sc.lookAt(ev.tar);g.sc.fov=2*Math.atan(Math.tan(lensFov(s.lens)/2)/ar)*180/Math.PI;g.sc.aspect=ar;g.sc.updateProjectionMatrix()}
 if(free){const o=g.orb;g.fc.aspect=ar;g.fc.updateProjectionMatrix();g.fc.position.set(o.tx+o.dist*Math.cos(o.pit)*Math.sin(o.yaw),o.dist*Math.sin(o.pit),o.tz+o.dist*Math.cos(o.pit)*Math.cos(o.yaw));g.fc.lookAt(o.tx,.8,o.tz);cam=g.fc}
 g.gz.visible=free&&has;g.helpers.visible=free;if(g.tc)g.tc.getHelper().visible=free&&!!g.tc.object;refSync(free);
@@ -708,8 +710,8 @@ const ps=mParts(M.scene);box.innerHTML='<div style="max-height:260px;overflow:au
 const ANIMK=[['stand','Quieto',/idle|stand|breath|rest/i],['walk','Andar',/walk/i],['run','Correr',/run|jog|sprint/i],['sit','Sentado',/sit/i],['phone','Teléfono',/phone|call/i]];
 function mdUI(o){const sel=$('#aMd'),box=$('#aMap');if(!sel)return;const av=S.models.filter(isChar);
 sel.innerHTML='<option value="">Muñeco articulado</option>'+av.map(m=>'<option value="'+m.id+'">'+esc(m.n)+'</option>').join('');sel.value=o.md||'';
-const md=o.md&&S.models.find(m=>m.id===o.md);if(!md){box.innerHTML='<p class="hint">'+(av.length?'Elige un personaje animado importado.':'Importa en «Mis modelos 3D» un personaje .glb con animaciones (por ejemplo de ActionForge) y aparecerá aquí.')+'</p>';return}
-const mp=md.map||{},nb=o.bp?Object.keys(o.bp).length:0;box.innerHTML=(md.clips&&md.clips.length?'<p class="hint">Animación que usa en cada situación (Andar y Correr, también al seguir un recorrido):</p>'+ANIMK.map(k=>'<label>'+k[1]+'<select id="aMp_'+k[0]+'" style="width:100%"><option value="">—</option>'+md.clips.map(c=>'<option'+(mp[k[0]]===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>').join(''):'<p class="hint">Este personaje no trae animaciones: dale la postura con el editor de pose.</p>')+'<button id="aPose" style="width:100%">🦴 Editar pose…</button>'+(nb||o.pt!=null?'<p class="hint">'+(nb?'Pose retocada en '+nb+' articulación'+(nb>1?'es':''):'')+(nb&&o.pt!=null?' · ':'')+(o.pt!=null?'quieto en el segundo '+String(o.pt).replace('.',','):'')+'.</p>':'')}
+const md=o.md&&S.models.find(m=>m.id===o.md);if(!md){box.innerHTML='<p class="hint">'+(av.length?'Elige un personaje animado importado.':'Importa en «Mis modelos 3D» un personaje con esqueleto (.glb, .fbx…, por ejemplo de ActionForge o Mixamo) y aparecerá aquí.')+'</p>';return}
+const mp=md.map||{},nb=o.bp?Object.keys(o.bp).length:0;box.innerHTML=(md.clips&&md.clips.length?'<p class="hint">Animación que usa en cada situación (Andar y Correr, también al seguir un recorrido):</p>'+ANIMK.map(k=>'<label>'+k[1]+'<select id="aMp_'+k[0]+'" style="width:100%"><option value="">—</option>'+md.clips.map(c=>'<option'+(mp[k[0]]===c?' selected':'')+'>'+esc(c)+'</option>').join('')+'</select></label>').join(''):'<p class="hint">Este personaje no trae animaciones: dale la postura con el editor de pose.</p>')+'<button id="aPose" style="width:100%">🦴 Editar pose…</button>'+(o.kf?'<p class="hint">Animado con '+o.kf.length+' fotograma'+(o.kf.length>1?'s':'')+' clave.</p>':'')+(nb||o.pt!=null?'<p class="hint">'+(nb?'Pose retocada en '+nb+' articulación'+(nb>1?'es':''):'')+(nb&&o.pt!=null?' · ':'')+(o.pt!=null?'quieto en el segundo '+String(o.pt).replace('.',','):'')+'.</p>':'')}
 function anim3D(o){const M=MC[o.md],md=S.models.find(m=>m.id===o.md);if(!M||!md||!(M.clips.length||M.rig))return null;
 const c=THREE.SkeletonUtils.clone(M.scene),b=M.box,k=(o.z||1.7)/Math.max(.1,b.max.y-b.min.y),root=new THREE.Group();c.scale.setScalar(k);c.position.set(-(b.min.x+b.max.x)/2*k,-b.min.y*k,-(b.min.z+b.max.z)/2*k);root.add(c);
 paint(c,o);c.traverse(n=>{if(n.isMesh)n.frustumCulled=false});
@@ -720,7 +722,7 @@ const pick=key=>{const mp=md.map||{},ch=key==='run'?['run','walk','stand']:key==
 const setS=st=>{bones.forEach(b=>b.quaternion.copy(rest.get(b)));const clip=pick(st.k);
 if(!clip){if(cur){cur.stop();cur=null}}else{const act=mixer.clipAction(clip);if(act!==cur){if(cur)cur.stop();act.play();cur=act}
 const sec=st.d!=null?st.d/((st.k==='run'?3.5:1.4)*sz):o.pt!=null?o.pt:(st.t||0);act.time=clip.duration>0?sec%clip.duration:0}
-mixer.update(0);bones.forEach(b=>baseQ.get(b).copy(b.quaternion));if(o.bp)for(const n in o.bp){const b=byB.get(n);if(b)b.quaternion.multiply(tq.fromArray(o.bp[n]))}};
+mixer.update(0);bones.forEach(b=>baseQ.get(b).copy(b.quaternion));const P=o.kf&&o.kf.length?kfPose(o.kf,st.kt!=null?st.kt:tm):o.bp;if(P)for(const n in P){const b=byB.get(n);if(b)b.quaternion.multiply(tq.fromArray(P[n]))}};
 root.userData={root,setS,baseQ,clipFor:pick};return root}
 function mRebuild(){if(mode!=='v3'||!G)return;clearTimeout(mRebuild.t);mRebuild.t=setTimeout(()=>{const o0=Object.assign({},G.orb);build3D();Object.assign(G.orb,o0);prep3D()},60)}
 async function mLoad(id){if(!id||MC[id]||mBusy[id])return;mBusy[id]=1;try{const buf=await idbGet(id);if(!buf){mHave[id]=false;return}mStore(id,await glbParse(buf));mRebuild()}catch(e){console.error(e);mHave[id]=false}finally{delete mBusy[id]}}
@@ -839,14 +841,20 @@ const P=new THREE.Vector3(p.x,p.h,p.y),Q=new THREE.Vector3(p.tx,p.th,p.ty),d=Q.c
 p.x=r3(P.x);p.h=r3(Math.max(.05,P.y));p.y=r3(P.z);p.tx=r3(Q.x);p.th=r3(Math.max(0,Q.y));p.ty=r3(Q.z);clearTimeout(lkWheel.t);lkWheel.t=setTimeout(()=>{lkWheel.t=null;save()},400);return true}
 
 
-/* ---- Ancho del panel izquierdo, ajustable y recordado ---- */
-(()=>{const L=$('#L'),gp=$('#Lgrip'),W0=230,set=w=>{w=Math.round(Math.max(180,Math.min(600,w)));L.style.width=w+'px';return w};
-try{const w=+localStorage.getItem('previz_lw');if(w)set(w)}catch(e){}
-let st=null;gp.addEventListener('pointerdown',e=>{gp.setPointerCapture(e.pointerId);st={x:e.clientX,w:L.offsetWidth};gp.classList.add('on');document.body.style.cursor='col-resize';e.preventDefault()});
-gp.addEventListener('pointermove',e=>{if(st)set(st.w+e.clientX-st.x)});
-const end=()=>{if(!st)return;st=null;gp.classList.remove('on');document.body.style.cursor='';try{localStorage.setItem('previz_lw',L.offsetWidth)}catch(e){}};
+/* ---- Ancho de los paneles laterales, ajustable y recordado ---- */
+function grip(P,gp,key,W0,dir){const set=w=>{w=Math.round(Math.max(+getComputedStyle(P).minWidth.replace('px','')||180,Math.min(600,w)));P.style.width=w+'px';return w};
+try{const w=+localStorage.getItem(key);if(w)set(w)}catch(e){}
+let st=null;gp.addEventListener('pointerdown',e=>{gp.setPointerCapture(e.pointerId);st={x:e.clientX,w:P.offsetWidth};gp.classList.add('on');document.body.style.cursor='col-resize';e.preventDefault()});
+gp.addEventListener('pointermove',e=>{if(st)set(st.w+dir*(e.clientX-st.x))});
+const end=()=>{if(!st)return;st=null;gp.classList.remove('on');document.body.style.cursor='';try{localStorage.setItem(key,P.offsetWidth)}catch(e){}};
 gp.addEventListener('pointerup',end);gp.addEventListener('pointercancel',end);
-gp.addEventListener('dblclick',()=>{set(W0);try{localStorage.removeItem('previz_lw')}catch(e){}})})();
+gp.addEventListener('dblclick',()=>{set(W0);try{localStorage.removeItem(key)}catch(e){}})}
+grip($('#L'),$('#Lgrip'),'previz_lw',230,1);grip($('#R'),$('#Rgrip'),'previz_rw',290,-1);
+/* ---- Modo claro u oscuro (por defecto, el del sistema) ---- */
+(()=>{const mq=matchMedia('(prefers-color-scheme: dark)'),b=$('#bTheme');let t=null;try{t=localStorage.getItem('previz_theme')}catch(e){}
+const apply=()=>{const dark=t?t==='dark':mq.matches;document.documentElement.dataset.theme=dark?'dark':'light';b.textContent=dark?'☀️ Claro':'🌙 Oscuro';readCol();draw();if(mode==='v3')mRebuild()};
+b.onclick=()=>{t=document.documentElement.dataset.theme==='dark'?'light':'dark';try{localStorage.setItem('previz_theme',t)}catch(e){}apply()};
+mq.addEventListener('change',()=>{if(!t)apply()});apply()})();
 locUI();mList();saved();
 new ResizeObserver(()=>{readCol();if(!fitted&&cv.clientWidth){fitted=true;fit()}else draw()}).observe($('#stage'));
 readCol();insp();

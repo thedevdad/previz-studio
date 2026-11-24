@@ -1,2 +1,5 @@
 node_modules/
 dist/
+
+# Archivos que Claude te envía por el chat
+Claude outputs/

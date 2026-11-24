@@ -13,6 +13,7 @@
 <button id="bUndo" title="Ctrl+Z">↶ Deshacer</button>
 <button id="bFit">Encuadrar</button>
 <label class="chk" style="margin:0"><input type="checkbox" id="cSnap" checked> Imán 0,1 m</label>
+<button id="bTheme" title="Cambiar entre modo claro y oscuro"></button>
 <button id="bSave" title="Guardar el proyecto en un archivo (Ctrl+S)">💾 Guardar</button><button id="bOpen" title="Abrir un proyecto guardado">📂 Abrir</button><input type="file" id="pFile" accept=".json,application/json" hidden>
 </header>
 <main>
@@ -43,9 +44,9 @@
 <p class="hint">Vista libre: arrastra para girar, Mayús o botón derecho para desplazar, rueda para acercar, flechas del teclado para moverte (con Mayús, más rápido). Espacio: reproducir o pausar.</p></div>
 <p class="hint cm">Con ＋ haz clic en la planta para añadir puntos: un solo punto es un plano fijo; varios, un movimiento de cámara. Si haces clic sobre la línea entre dos puntos, el nuevo punto se inserta ahí. Arrastra el círculo para mover la cámara (con Alt, el objetivo se queda fijo) y la cruz para cambiar hacia dónde mira. Supr borra el punto elegido. Con 🚶, pulsa un personaje o un perro y luego traza por dónde se mueve en este plano.</p>
 <p class="hint pl">Pulsa un objeto para añadirlo al centro de la vista y arrástralo. Rueda: zoom · arrastra el fondo: mover la vista · Supr: borrar · Ctrl+Z: deshacer · Flechas: empujar · Mayús al dibujar muros: línea recta.</p>
-</aside><div id="Lgrip" title="Arrastra para cambiar el ancho del panel · doble clic: ancho original"></div>
+</aside><div id="Lgrip" class="grip" title="Arrastra para cambiar el ancho del panel · doble clic: ancho original"></div>
 <div id="stage"><canvas id="cv" tabindex="0" style="outline:none"></canvas><div id="stat">—</div><div id="v3w"><canvas id="gl"></canvas><video id="refV" muted playsinline preload="auto" style="position:absolute;pointer-events:none;display:none;object-fit:contain"></video><div id="hud"></div></div><div id="tl"><button id="tPlay">▶</button><input type="range" id="tSc" min="0" max="1000" value="0"><span id="tTm" style="min-width:96px;text-align:center;font-variant-numeric:tabular-nums">0,0 / 0,0 s</span><select id="spdSel"><option value=".5">0,5×</option><option value="1" selected>1×</option><option value="2">2×</option></select><label class="chk" style="margin:0"><input type="checkbox" id="tLoop" checked> Bucle</label><label class="chk" style="margin:0"><input type="checkbox" id="tEase" checked> Suave</label></div><div id="toast"></div></div>
-<aside id="R"><h3>Propiedades</h3><div id="insp"></div></aside>
+<div id="Rgrip" class="grip" title="Arrastra para cambiar el ancho del panel · doble clic: ancho original"></div><aside id="R"><h3>Propiedades</h3><div id="insp"></div></aside>
 </main>
 <div id="cf" hidden><div class="card"><h3 id="cfH"></h3><p id="cfT"></p><div class="row"><button id="cfOk" class="dng"></button><button id="cfNo">Cancelar</button></div></div></div>
 <div id="op" hidden><div class="card"><h3>Abrir proyecto</h3><p id="opT"></p>

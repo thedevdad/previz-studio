@@ -12,7 +12,17 @@ button.dng{color:#c92a2a}
 .chk{display:flex;align-items:center;gap:4px;color:var(--mute)}
 main{flex:1;min-height:0;display:flex}
 aside{width:230px;flex:none;background:var(--panel);padding:10px;overflow-y:auto;box-sizing:border-box}
-#L{border-right:1px solid var(--line);min-width:180px;max-width:600px}#Lgrip{width:7px;margin-left:-4px;flex:none;cursor:col-resize;position:relative;z-index:2}#Lgrip:hover,#Lgrip.on{background:var(--acc);opacity:.45}#R{border-left:1px solid var(--line);width:230px}
+#L{border-right:1px solid var(--line);min-width:180px;max-width:600px}#Lgrip{margin-left:-4px}#Rgrip{margin-right:-4px}
+.grip{width:7px;flex:none;cursor:col-resize;position:relative;z-index:2}.grip:hover,.grip.on{background:var(--acc);opacity:.45}#R{border-left:1px solid var(--line);width:290px;min-width:220px;max-width:600px;padding:12px 14px}
+/* Inspector: más aire entre campos */
+#insp label{margin-bottom:12px}
+#insp h3{margin:18px 0 8px;padding-top:12px;border-top:1px solid var(--line)}
+#insp>h3:first-child{margin-top:4px;padding-top:0;border-top:0}
+#insp .row{gap:10px}#insp .row>*{flex:1;min-width:0}
+#insp select,#insp input[type=color]{width:100%;box-sizing:border-box;margin-top:4px}
+#insp input[type=text],#insp input[type=number]{margin-top:4px;padding:7px 8px}
+#insp button{margin-bottom:8px}#insp .row button{margin-bottom:0}
+#insp .hint{margin:4px 0 10px;line-height:1.45}
 h3{margin:12px 0 6px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute)}h3:first-child{margin-top:0}
 .tools,.cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px}.tools{grid-template-columns:1fr}
 .cat button{text-align:left;padding:6px 8px}.lyr{display:flex;gap:6px;align-items:center;margin-bottom:4px}.lyr button{padding:4px 8px;min-width:34px}.lyr span{flex:1}.lyr span small{opacity:.55;margin-left:4px}.lyr.off span{opacity:.45}.catg{border-bottom:1px solid var(--line);padding:4px 0}.catg>summary{cursor:pointer;font-weight:600;padding:6px 2px;list-style:none;display:flex;justify-content:space-between;align-items:center}.catg>summary::-webkit-details-marker{display:none}.catg>summary::before{content:'▸';margin-right:6px;transition:transform .15s}.catg[open]>summary::before{transform:rotate(90deg)}.catg>summary span{margin-left:auto;opacity:.55;font-weight:400;font-size:12px}.catg>.cat{padding:4px 0 6px}.mrow{display:flex;gap:6px;margin-bottom:6px}.mrow>button:first-child{flex:1;text-align:left;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -38,7 +48,7 @@ input[type=text],input[type=number]{width:100%;box-sizing:border-box;font:inheri
 #op[hidden],#cf[hidden]{display:none}
 .card{background:var(--panel);border-radius:12px;padding:16px;width:min(560px,92vw)}
 
-@media (max-width:760px){#Lgrip{display:none}main{flex-direction:column}aside{width:auto!important;max-height:26vh;border:0!important;border-bottom:1px solid var(--line)!important}#stage{order:-1;min-height:46vh}.cat{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:760px){.grip{display:none}main{flex-direction:column}aside{width:auto!important;max-height:26vh;border:0!important;border-bottom:1px solid var(--line)!important}#stage{order:-1;min-height:46vh}.cat{grid-template-columns:repeat(3,1fr)}}
 
 /* Editor de pose */
 #poseEd{position:fixed;inset:0;z-index:1000;display:flex;background:var(--bg)}
@@ -53,3 +63,8 @@ input[type=text],input[type=number]{width:100%;box-sizing:border-box;font:inheri
 #poseEd #peList{flex:1;min-height:80px;overflow-y:auto;margin-top:6px;display:flex;flex-direction:column;gap:2px}
 #poseEd #peList button{text-align:left;padding:3px 8px;font-size:12px}
 #poseEd .pe-end{margin-top:10px}#poseEd .pe-end button{flex:1}
+#poseEd #peTrack{position:relative;height:18px;margin:-4px 0 8px;border-bottom:1px solid var(--line)}
+#poseEd #peTrack i{position:absolute;top:3px;width:10px;height:10px;margin-left:-5px;background:var(--mute);transform:rotate(45deg);cursor:pointer}
+#poseEd #peTrack i.on{background:var(--acc)}
+#poseEd #peTrack b{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:var(--sel);pointer-events:none}
+#poseEd .row{margin-bottom:6px}#poseEd .row button{flex:1}
