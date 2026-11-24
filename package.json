@@ -11,6 +11,8 @@
     "tauri": "tauri"
   },
   "dependencies": {
+    "jspdf": "4.2.1",
+    "mediabunny": "1.66.4",
     "three": "0.187.0"
   },
   "devDependencies": {

@@ -44,6 +44,8 @@ dibujas el set   colocas planos     ves la secuencia
 - **Capas** (Suelo, Muebles y Techo) para ocultar o bloquear. Lo más alto siempre se dibuja encima.
 - **Personas** con rol (personaje, secundario o extra), sexo, poses predefinidas y ajuste fino, y aspecto (pelo, piel, ropa). También hay **perro**.
 - **Personajes animados**: importa un personaje `.glb` o `.fbx` con animaciones (por ejemplo de [ActionForge](https://actionforge.app) o Mixamo) y úsalo en lugar del muñeco. Anda, corre o se queda quieto según su recorrido.
+- **🦴 Editor de pose**: gira cada articulación de un personaje con esqueleto, congela un momento de su animación y anímalo con **fotogramas clave** a lo largo del plano.
+- **Pintar piezas** de los modelos importados con un color por pieza.
 - **Mis modelos 3D**: importa tus propios modelos en `.glb`, `.gltf`, `.fbx`, `.obj`, `.dae`, `.3ds`, `.stl` o `.usdz`, sueltos o con su carpeta de texturas: de [Poly Haven](https://polyhaven.com), [CGTrader](https://www.cgtrader.com), [Quaternius](https://quaternius.com) o [Kenney](https://kenney.nl).
 
 ### 🎥 Cámara
@@ -60,11 +62,15 @@ dibujas el set   colocas planos     ves la secuencia
 
 - **Hora del día**: día, atardecer o noche, con dirección del sol. La luz entra por las ventanas.
 - **Vista libre** para recorrer el set y **arrastrar los puntos** de cámara y recorridos en 3D, también en altura.
+- **Mover y girar objetos en 3D** con flechas y aros (en los tres ejes), con todas sus propiedades a mano en el panel.
 - **Vídeo de referencia** superpuesto y sincronizado, para encajar tu cámara con un plano real mirando por el visor.
 
 ### 🗂️ Proyectos
 - **Varias localizaciones** en un mismo proyecto.
 - **💾 Guardar / 📂 Abrir** en un archivo `.previz.json` que incluye los modelos 3D importados.
+- **🎞️ Exportar el storyboard** en PDF listo para imprimir (con lente, duración y notas de cada plano) y en imágenes PNG.
+- **🎞️ Exportar vídeo** MP4 del plano actual o de todos seguidos, como un animatic, con rótulo opcional.
+- **Modo claro u oscuro** y paneles laterales de ancho ajustable.
 
 ---
 
@@ -128,10 +134,9 @@ npm run build
 
 ## 🗺️ Próximamente
 
-- [ ] Exportar el **storyboard** como imágenes
-- [ ] Animaciones de escena: puertas que se abren, cámara en mano
+- [ ] Animar objetos: puertas que se abren, coches que pasan, cámara en mano
 - [ ] Trazados curvos para muros, calles y recorridos
-- [ ] Exportar **vídeo** del recorrido de cámara
+- [ ] Personajes que miran a un punto o a otro personaje
 
 ---
 

@@ -3,6 +3,7 @@ import './style.css';
 import { THREE } from './lib/three.js';
 import { OTHER, toGlb } from './lib/import3d.js';
 import { openPose, kfPose } from './pose.js';
+import { setupExport, openExport } from './export.js';
 import { CATS, CAT, byT, ZD, LAMP, RND, FLAT, RECT } from './data/catalog.js';
 import { D2R, ROLEC, ROLES, POSES, PLIST, DPOSES, DLIST, SL, HAIRS, HAIRC, SKIN, poseOf } from './data/people.js';
 const $=s=>document.querySelector(s);
@@ -232,17 +233,17 @@ function newShot(){pushU();const s={id:S.nid++,n:'Plano '+(SH().length+1),lens:3
 function camInsp(){shotList();const el=$('#insp'),sh=cur();
 if(!sh){el.innerHTML='<p class="hint">Crea un plano con + Nuevo.</p>';return}
 if(ci>=sh.pts.length)ci=-1;const q=sh.pts[ci];
-let h='<label>Nombre del plano<input type="text" id="cN"></label><label>Lente (mm)<input type="number" id="cL" min="10" max="200" step="5"></label><p class="hint" id="cF"></p>';
+let h='<label>Nombre del plano<input type="text" id="cN"></label><label>Lente (mm)<input type="number" id="cL" min="10" max="200" step="5"></label><p class="hint" id="cF"></p><label>Notas del plano (salen en el storyboard)<textarea id="cNt" rows="3"></textarea></label>';
 if(q)h+='<h3>Punto '+(ci+1)+'</h3><div class="row"><label>Alt. cámara (m)<input type="number" id="cH" step=".1" min=".1"></label><label>Alt. objetivo (m)<input type="number" id="cT" step=".1" min="0"></label></div><label>'+(ci?'Tiempo desde el punto anterior (s)':'Espera inicial (s)')+'<input type="number" id="cD" step=".5" min="0"></label><p class="hint" id="cI"></p><button id="cX" class="dng">Eliminar punto</button>';
 else h+='<p class="hint">Selecciona un punto de la cámara para editar su altura, su objetivo y su tiempo.</p>';
 h+=routeUI();h+='<p class="hint" id="cTot"></p>';el.innerHTML=h;camSync()}
-function camSync(){const sh=cur();if(!sh)return;const q=sh.pts[ci];setv('#cN',sh.n);setv('#cL',sh.lens);const rm=curRoute()||rdef;setv('#rV',rm.spd);setv('#rD',rm.dl);setv('#rA',rm.anim);
+function camSync(){const sh=cur();if(!sh)return;const q=sh.pts[ci];setv('#cN',sh.n);setv('#cL',sh.lens);setv('#cNt',sh.nt||'');const rm=curRoute()||rdef;setv('#rV',rm.spd);setv('#rD',rm.dl);setv('#rA',rm.anim);
 const f=$('#cF');if(f)f.textContent='Ángulo de visión horizontal: '+Math.round(lensFov(sh.lens)*180/Math.PI)+'°';
 if(q){setv('#cH',r3(q.h));setv('#cT',r3(q.th));setv('#cD',r3(q.d));const i=$('#cI');if(i){const d=Math.hypot(q.tx-q.x,q.ty-q.y);i.textContent='Inclinación: '+Math.round(Math.atan2(q.th-q.h,d)*180/Math.PI)+'° · distancia al objetivo: '+d.toFixed(1)+' m'}}
 const t=$('#cTot');if(t){const n=sh.pts.reduce((a,p)=>a+p.d,0);t.textContent=sh.pts.length?(sh.pts.length===1?'Plano fijo · ':'Movimiento · ')+'duración total '+n.toFixed(1)+' s':(tool==='route'?'':'Sin puntos de cámara: usa ＋ y haz clic en la planta.')}}
 function camInput(e){const sh=cur();if(!sh)return;const q=sh.pts[ci],v=parseFloat(e.target.value),id=e.target.id;
 if(id==='rV'||id==='rA'||id==='rD'){routeInput(id,e.target.value);save();draw();return}
-if(id==='cN'){sh.n=e.target.value;shotList()}else if(id==='cL'&&v>=10)sh.lens=v;else if(q){if(id==='cH'&&v>0)q.h=v;else if(id==='cT'&&v>=0)q.th=v;else if(id==='cD'&&v>=0)q.d=v}
+if(id==='cN'){sh.n=e.target.value;shotList()}else if(id==='cNt'){if(e.target.value.trim())sh.nt=e.target.value;else delete sh.nt}else if(id==='cL'&&v>=10)sh.lens=v;else if(q){if(id==='cH'&&v>0)q.h=v;else if(id==='cT'&&v>=0)q.th=v;else if(id==='cD'&&v>=0)q.d=v}
 camSync();save();draw()}
 function camDelPt(){const sh=cur();if(!sh)return;
 if(tool==='route'){const m=curRoute();if(m&&rpi>=0&&m.pts[rpi]){pushU();m.pts.splice(rpi,1);rpi=-1;camInsp();save();draw();toast('Punto del recorrido eliminado')}else toast('Selecciona un punto del recorrido para borrarlo');return}
@@ -599,7 +600,7 @@ function prep3D(){const g=G;if(!g)return;sel3=null;helpers3D();resetActors();inf
 function v3Insp(){refUI();const o3=obj3();if(o3){objInsp(o3);return}const s=cur();$('#insp').innerHTML=s?'<h3>'+esc(s.n)+'</h3><p class=hint>'+(s.pts.length?(s.pts.length===1?'Plano fijo':'Movimiento de cámara con '+s.pts.length+' puntos')+' · lente '+s.lens+' mm · '+total().toFixed(1)+' s':'Este plano no tiene puntos de cámara. Añádelos en el modo Cámara.')+'</p><p class=hint>En 🧭 Vista libre puedes arrastrar los puntos de cámara y de recorrido. Para añadir o borrar puntos, usa el modo Cámara; para cambiar el set, el modo Planta.</p>':'<p class=hint>Crea un plano en el modo Cámara.</p>'}
 const isFree=()=>view==='free'||!(cur()&&cur().pts.length),updPlay=()=>{$('#tPlay').textContent=playing?'⏸':'▶'};
 const tc=t=>{const p=n=>String(n).padStart(2,'0');return p(Math.floor(t/60))+':'+p(Math.floor(t%60))+':'+p(Math.floor((t%1)*24))};
-function layoutGL(free){const w=$('#v3w'),W=w.clientWidth,H=w.clientHeight;if(!W||!H)return;let cw=W,ch=H;if(!free){cw=Math.min(W,Math.floor(H*asp));ch=Math.floor(cw/asp)}
+function layoutGL(free){const w=$('#v3w'),W=w.clientWidth,H=w.clientHeight;if(!W||!H)return;let cw=W,ch=H;if(!free){cw=Math.min(W,Math.floor(H*asp));ch=Math.floor(cw/asp)}if(expSz){cw=expSz[0];ch=expSz[1]}
 if(cw===G.cw&&ch===G.ch)return;G.cw=cw;G.ch=ch;const c=$('#gl'),d=G.dp;G.r.setSize(cw,ch,false);c.style.width=cw+'px';c.style.height=ch+'px';
 const pw=Math.round(cw*d),ph=Math.round(ch*d);G.rt.setSize(pw,ph);G.rtN.setSize(pw,ph);G.pm.uniforms.res.value.set(pw,ph)}
 function render(cam){if(style===3){renderReal(cam);return}const g=G,r=g.r,U=g.pm.uniforms,now=performance.now()/1000;U.znear.value=cam.near;U.zfar.value=cam.far;U.t.value=Math.floor(now*24)%100;U.seed.value=Math.floor(now*6)*3.7;
@@ -618,7 +619,7 @@ render(cam)}
 function loop(ts){if(mode!=='v3')return;const dt=Math.min(.1,(ts-lastT)/1000);lastT=ts;
 if(playing){const tot=total();tm+=dt*spd;if(tm>=tot){if($('#tLoop').checked&&tot>0)tm%=tot;else{tm=tot;playing=false;updPlay()}}}
 if(G&&isFree()&&(kv.ArrowUp||kv.ArrowDown||kv.ArrowLeft||kv.ArrowRight)){const o=G.orb,f=(kv.ArrowUp?1:0)-(kv.ArrowDown?1:0),r=(kv.ArrowRight?1:0)-(kv.ArrowLeft?1:0),v=Math.max(1,o.dist*.35)*(e_shift?3:1)*dt,sn=Math.sin(o.yaw),cs=Math.cos(o.yaw);o.tx+=(-sn*f+cs*r)*v;o.tz+=(-cs*f-sn*r)*v}
-try{frame()}catch(e){console.error(e)}raf=requestAnimationFrame(loop)}
+try{if(!expSz)frame()}catch(e){console.error(e)}raf=requestAnimationFrame(loop)}
 $('#tPlay').onclick=()=>{playing=!playing;if(playing&&tm>=total()&&!$('#tLoop').checked)tm=0;updPlay()};
 $('#tSc').addEventListener('input',e=>{tm=e.target.value/1000*total();playing=false;updPlay()});
 $('#spdSel').onchange=e=>{spd=+e.target.value};
@@ -677,6 +678,19 @@ const i=G.act.findIndex(a=>a.o===o);if(i>=0)G.act.splice(i,1);if(it.userData.mv)
 let re3T=0;const re3Soon=()=>{clearTimeout(re3T);re3T=setTimeout(()=>{if(mode!=='v3'||!G)return;const o=obj3();if(o)re3(o);else mRebuild()},40)};
 $('#insp').addEventListener('click',e=>{if(mode!=='v3')return;const b=e.target.closest('[data-tm]');if(b){tcMode=b.dataset.tm;tcSync();v3Insp();return}const id=e.target.id;if(id==='pX'||id==='pD'){mRebuild();return}if(e.target.closest('button'))re3Soon()});
 $('#insp').addEventListener('input',()=>{if(mode==='v3')re3Soon()});
+/* ---- Exportar: dibuja los planos a un tamaño fijo, fuera del bucle normal ---- */
+let expSz=null;
+function dlBlob(b,name){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),10000)}
+setupExport({toast,asp:()=>asp,curId:()=>S.cur,project:()=>S.pname||'Previz',loc:()=>$('#locName').value||'Localización',
+save:async(b,name)=>dlBlob(b,name),
+shots:()=>{const c=S.cur,r=SH().filter(s=>s.pts.length).map(s=>{S.cur=s.id;return{id:s.id,n:s.n,lens:s.lens,nt:s.nt,dur:total()||3}});S.cur=c;return r},
+begin:async()=>{const st={mode,view,cur:S.cur,tm};if(mode!=='v3')setMode('v3');if(!G)throw new Error('no se pudo cargar el motor 3D');playing=false;updPlay();view='shot';
+for(let i=0;i<150&&Object.keys(mBusy).length;i++)await new Promise(r=>setTimeout(r,100));
+st.dp=G.dp;G.r.setPixelRatio(1);G.dp=1;G.pm.uniforms.dp.value=1;return st},
+frame:(id,t,W,H)=>{if(!expSz||expSz[0]!==W||expSz[1]!==H){expSz=[W,H];G.cw=0}if(S.cur!==id){S.cur=id;resetActors()}tm=t;frame();return glc},
+end:st=>{expSz=null;G.r.setPixelRatio(st.dp);G.dp=st.dp;G.pm.uniforms.dp.value=st.dp;S.cur=st.cur;tm=st.tm;resetActors();G.cw=0;view=st.view;
+document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('on',x.dataset.view===view));if(st.mode!=='v3')setMode(st.mode)}});
+$('#bExp').onclick=openExport;
 /* ---------- botones ---------- */
 let catOpen={est:1,per:1,casa:1};try{catOpen=JSON.parse(localStorage.getItem('previz_cats'))||catOpen}catch(e){}
 $('#cat').innerHTML=CATS.map(k=>'<details class="catg" data-k="'+k[0]+'"'+(catOpen[k[0]]?' open':'')+'><summary>'+k[1]+' <span>'+CAT.filter(c=>c.k===k[0]).length+'</span></summary><div class="cat">'+CAT.filter(c=>c.k===k[0]).map(c=>'<button data-add="'+c.t+'">'+c.e+' '+c.n+'</button>').join('')+'</div></details>').join('');
